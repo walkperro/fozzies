@@ -19,7 +19,6 @@ export default function Header() {
 
   const closeMenu = () => {
     setClosing(true);
-    // match CSS close animation duration
     setTimeout(() => {
       setOpen(false);
       setClosing(false);
@@ -32,7 +31,6 @@ export default function Header() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -44,10 +42,10 @@ export default function Header() {
 
   const Wordmark = ({ className = "" }: { className?: string }) => (
     <Image
-      src="/brand/title_solo_no_bg.png"
+      src="/brand/title_solo_hq.png"
       alt="Fozzie's"
-      width={900}
-      height={240}
+      width={720}
+      height={200}
       priority
       className={className}
     />
@@ -56,8 +54,7 @@ export default function Header() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-charcoal/10 bg-ivory/85 backdrop-blur">
-        <div className="mx-auto grid max-w-6xl grid-cols-3 items-center px-4 py-2 sm:px-6 sm:py-3">
-          {/* Left: Reserve */}
+        <div className="mx-auto grid max-w-6xl grid-cols-3 items-center px-4 py-1.5 sm:px-6 sm:py-2">
           <div className="justify-self-start">
             <a
               href="#reserve"
@@ -67,14 +64,12 @@ export default function Header() {
             </a>
           </div>
 
-          {/* Center: Home logo (3x bigger) */}
           <div className="justify-self-center">
             <Link href="/" className="inline-flex items-center no-underline">
-              <Wordmark className="h-20 w-auto sm:h-24" />
+              <Wordmark className="h-14 w-auto sm:h-16" />
             </Link>
           </div>
 
-          {/* Right: Hamburger (no circle) */}
           <div className="justify-self-end">
             <button
               type="button"
@@ -82,7 +77,6 @@ export default function Header() {
               className="inline-flex items-center justify-center px-3 py-3 text-charcoal/90 transition hover:text-charcoal"
               aria-label="Open menu"
             >
-              <span className="sr-only">Open menu</span>
               <div className="flex flex-col gap-2">
                 <span className="h-px w-6 bg-charcoal/70" />
                 <span className="h-px w-6 bg-charcoal/70" />
@@ -95,19 +89,14 @@ export default function Header() {
 
       {open && (
         <div className={`fixed inset-0 z-[100] ${closing ? "fz-overlay-out" : "fz-overlay-in"}`}>
-          {/* Backdrop */}
           <div className="absolute inset-0 bg-ivory" onClick={closeMenu} />
-
-          {/* Soft editorial glow */}
           <div className="pointer-events-none absolute inset-0 opacity-[0.08] blur-3xl">
             <div className="absolute -left-24 top-24 h-80 w-80 rounded-full bg-gold/60" />
             <div className="absolute right-0 top-0 h-[28rem] w-[28rem] rounded-full bg-charcoal/20" />
             <div className="absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-gold/30" />
           </div>
 
-          {/* Content */}
           <div className="relative z-[110] mx-auto flex h-full max-w-6xl flex-col px-4 py-4 sm:px-6">
-            {/* Top row */}
             <div className="grid grid-cols-3 items-center py-2">
               <div className="justify-self-start">
                 <a
@@ -121,11 +110,10 @@ export default function Header() {
 
               <div className="justify-self-center">
                 <Link href="/" onClick={closeMenu} className="inline-flex no-underline">
-                  <Wordmark className="h-20 w-auto sm:h-24" />
+                  <Wordmark className="h-14 w-auto sm:h-16" />
                 </Link>
               </div>
 
-              {/* X (no circle) */}
               <div className="justify-self-end">
                 <button
                   type="button"
@@ -138,7 +126,6 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Nav */}
             <div className="flex flex-1 flex-col justify-center pb-10">
               <nav className="space-y-5">
                 {NAV.map((item, i) => (
@@ -166,7 +153,6 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Bottom strip */}
             <div
               className="flex items-center justify-between text-xs text-softgray fz-navitem"
               style={{ animationDelay: `${NAV.length * 60 + 120}ms` }}
