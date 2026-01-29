@@ -5,7 +5,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 border-b border-charcoal/10 bg-ivory/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
         {/* Brand */}
-        <Link href="/" className="group flex items-baseline gap-3">
+        <Link href="/" className="group flex items-baseline gap-3 no-underline">
           <span className="font-serif text-2xl tracking-tight text-charcoal">
             Fozzie’s
           </span>
@@ -16,18 +16,18 @@ export default function Header() {
 
         {/* Nav */}
         <nav className="hidden items-center gap-7 text-sm text-charcoal/80 md:flex">
-          <Link className="hover:text-charcoal" href="/menu">Menu</Link>
-          <Link className="hover:text-charcoal" href="/about">About</Link>
-          <Link className="hover:text-charcoal" href="/faq">FAQ</Link>
-          <Link className="hover:text-charcoal" href="/events">Private Dining</Link>
-          <Link className="hover:text-charcoal" href="/contact">Contact</Link>
+          <Link className="hover:text-charcoal no-underline" href="/menu">Menu</Link>
+          <Link className="hover:text-charcoal no-underline" href="/about">About</Link>
+          <Link className="hover:text-charcoal no-underline" href="/faq">FAQ</Link>
+          <Link className="hover:text-charcoal no-underline" href="/events">Private Dining</Link>
+          <Link className="hover:text-charcoal no-underline" href="/contact">Contact</Link>
         </nav>
 
         {/* CTA */}
         <div className="flex items-center gap-2">
           <a
             href="#reserve"
-            className="inline-flex items-center justify-center rounded-full border border-gold px-4 py-2 text-sm font-medium text-charcoal transition hover:bg-gold/15"
+            className="inline-flex items-center justify-center rounded-full border border-gold px-4 py-2 text-sm font-medium text-charcoal no-underline transition hover:bg-gold/15"
             aria-label="Reserve a table"
           >
             Reserve
