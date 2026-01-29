@@ -24,12 +24,24 @@ export default function Header() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Lock scroll the right way (mobile-safe)
   useEffect(() => {
-    document.documentElement.style.overflow = open ? "hidden" : "";
+    document.body.style.overflow = open ? "hidden" : "";
     return () => {
-      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
     };
   }, [open]);
+
+  const Logo = ({ className = "" }: { className?: string }) => (
+    <Image
+      src="/brand/title_solo_no_bg.png"
+      alt="Fozzie's"
+      width={280}
+      height={72}
+      priority
+      className={className}
+    />
+  );
 
   return (
     <>
@@ -48,14 +60,7 @@ export default function Header() {
           {/* Center: Logo/Home */}
           <div className="justify-self-center">
             <Link href="/" className="inline-flex items-center no-underline">
-              <Image
-                src="/brand/title.png"
-                alt="Fozzie's"
-                width={220}
-                height={60}
-                priority
-                className="h-8 w-auto sm:h-9"
-              />
+              <Logo className="h-10 w-auto sm:h-11" />
             </Link>
           </div>
 
@@ -64,7 +69,7 @@ export default function Header() {
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-charcoal/10 bg-white/40 text-charcoal transition hover:border-charcoal/20"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-charcoal/10 bg-white/40 text-charcoal transition hover:border-charcoal/20"
               aria-label="Open menu"
             >
               <span className="sr-only">Open menu</span>
@@ -80,52 +85,61 @@ export default function Header() {
 
       {/* Overlay menu */}
       {open && (
-        <div className="fixed inset-0 z-[60]">
-          {/* Backdrop */}
-          <button
-            aria-label="Close menu"
+        <div className="fixed inset-0 z-[100]">
+          {/* Backdrop (blocks taps + looks clean) */}
+          <div
+            className="absolute inset-0 bg-ivory"
             onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-ivory/92"
           />
 
-          {/* Optional faint “editorial” blur layer */}
-          <div className="pointer-events-none absolute inset-0 opacity-[0.10] blur-2xl">
-            <div className="absolute -left-16 top-24 h-72 w-72 rounded-full bg-gold/60" />
-            <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-charcoal/20" />
-            <div className="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-gold/30" />
+          {/* Soft editorial glow (subtle) */}
+          <div className="pointer-events-none absolute inset-0 opacity-[0.08] blur-3xl">
+            <div className="absolute -left-24 top-24 h-80 w-80 rounded-full bg-gold/60" />
+            <div className="absolute right-0 top-0 h-[28rem] w-[28rem] rounded-full bg-charcoal/20" />
+            <div className="absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-gold/30" />
           </div>
 
           {/* Content */}
-          <div className="relative mx-auto flex h-full max-w-6xl flex-col px-4 py-6 sm:px-6">
-            <div className="flex items-center justify-between">
-              <Link href="/" onClick={() => setOpen(false)} className="no-underline">
-                <Image
-                  src="/brand/title.png"
-                  alt="Fozzie's"
-                  width={220}
-                  height={60}
-                  className="h-8 w-auto sm:h-9"
-                />
-              </Link>
+          <div className="relative z-[110] mx-auto flex h-full max-w-6xl flex-col px-4 py-4 sm:px-6">
+            {/* Top row */}
+            <div className="grid grid-cols-3 items-center py-2">
+              <div className="justify-self-start">
+                <a
+                  href="#reserve"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex items-center justify-center rounded-full border border-gold px-4 py-2 text-sm font-medium text-charcoal no-underline transition hover:bg-gold/15"
+                >
+                  Reserve
+                </a>
+              </div>
 
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-charcoal/10 bg-white/40 text-charcoal transition hover:border-charcoal/20"
-                aria-label="Close menu"
-              >
-                <span className="text-xl leading-none">×</span>
-              </button>
+              <div className="justify-self-center">
+                <Link href="/" onClick={() => setOpen(false)} className="inline-flex no-underline">
+                  <Logo className="h-10 w-auto sm:h-11" />
+                </Link>
+              </div>
+
+              <div className="justify-self-end">
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-charcoal/10 bg-white/40 text-charcoal transition hover:border-charcoal/20"
+                  aria-label="Close menu"
+                >
+                  <span className="text-2xl leading-none">×</span>
+                </button>
+              </div>
             </div>
 
-            <div className="mt-10 flex-1">
-              <nav className="space-y-4">
+            {/* Nav */}
+            <div className="flex flex-1 flex-col justify-center pb-10">
+              <nav className="space-y-5">
                 {NAV.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setOpen(false)}
-                    className="block font-serif text-4xl tracking-tight text-charcoal no-underline transition hover:opacity-70 sm:text-5xl"
+                    className="block font-serif text-5xl leading-[0.95] tracking-tight text-charcoal no-underline transition hover:opacity-70 sm:text-6xl"
                   >
                     {item.label}
                   </Link>
@@ -141,7 +155,8 @@ export default function Header() {
               </div>
             </div>
 
-            <div className="mt-6 flex items-center justify-between text-xs text-softgray">
+            {/* Bottom strip */}
+            <div className="flex items-center justify-between text-xs text-softgray">
               <span className="tracking-[0.18em]">AN ELEVATED DINING EXPERIENCE</span>
               <a
                 href="#reserve"
