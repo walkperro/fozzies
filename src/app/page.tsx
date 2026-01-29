@@ -78,6 +78,7 @@ export default function HomePage() {
                 Reservations are strongly recommended. Book via OpenTable.
               </p>
             </div>
+
             <a
               href="#"
               className="rounded-full border border-gold px-5 py-2.5 text-sm font-medium text-charcoal no-underline transition hover:bg-gold/15"
@@ -87,8 +88,7 @@ export default function HomePage() {
           </div>
 
           <div className="mt-6 rounded-2xl border border-charcoal/10 bg-ivory p-6 text-sm text-charcoal/70">
-            OpenTable widget will be embedded here once you send me the restaurant’s
-            OpenTable reservation link / widget code.
+            OpenTable widget will be embedded here once you send the reservation link / widget code.
           </div>
         </div>
       </section>
