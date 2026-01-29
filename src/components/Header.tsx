@@ -15,13 +15,24 @@ const NAV = [
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
+
+  const closeMenu = () => {
+    setClosing(true);
+    // match CSS close animation duration
+    setTimeout(() => {
+      setOpen(false);
+      setClosing(false);
+    }, 220);
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") closeMenu();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -35,8 +46,8 @@ export default function Header() {
     <Image
       src="/brand/title_solo_no_bg.png"
       alt="Fozzie's"
-      width={420}
-      height={110}
+      width={900}
+      height={240}
       priority
       className={className}
     />
@@ -45,7 +56,7 @@ export default function Header() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-charcoal/10 bg-ivory/85 backdrop-blur">
-        <div className="mx-auto grid max-w-6xl grid-cols-3 items-center px-4 py-3 sm:px-6 sm:py-4">
+        <div className="mx-auto grid max-w-6xl grid-cols-3 items-center px-4 py-2 sm:px-6 sm:py-3">
           {/* Left: Reserve */}
           <div className="justify-self-start">
             <a
@@ -56,41 +67,36 @@ export default function Header() {
             </a>
           </div>
 
-          {/* Center: Logo/Home (bigger) */}
+          {/* Center: Home logo (3x bigger) */}
           <div className="justify-self-center">
             <Link href="/" className="inline-flex items-center no-underline">
-              {/* Bigger: was h-10; now h-14 */}
-              <Wordmark className="h-14 w-auto sm:h-16" />
+              <Wordmark className="h-20 w-auto sm:h-24" />
             </Link>
           </div>
 
-          {/* Right: Menu button */}
+          {/* Right: Hamburger (no circle) */}
           <div className="justify-self-end">
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-charcoal/10 bg-white/40 text-charcoal transition hover:border-charcoal/20"
+              className="inline-flex items-center justify-center px-3 py-3 text-charcoal/90 transition hover:text-charcoal"
               aria-label="Open menu"
             >
               <span className="sr-only">Open menu</span>
-              <div className="flex flex-col gap-1.5">
-                <span className="h-px w-5 bg-charcoal/70" />
-                <span className="h-px w-5 bg-charcoal/70" />
-                <span className="h-px w-5 bg-charcoal/70" />
+              <div className="flex flex-col gap-2">
+                <span className="h-px w-6 bg-charcoal/70" />
+                <span className="h-px w-6 bg-charcoal/70" />
+                <span className="h-px w-6 bg-charcoal/70" />
               </div>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Overlay menu */}
       {open && (
-        <div className="fixed inset-0 z-[100] fz-overlay">
+        <div className={`fixed inset-0 z-[100] ${closing ? "fz-overlay-out" : "fz-overlay-in"}`}>
           {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-ivory"
-            onClick={() => setOpen(false)}
-          />
+          <div className="absolute inset-0 bg-ivory" onClick={closeMenu} />
 
           {/* Soft editorial glow */}
           <div className="pointer-events-none absolute inset-0 opacity-[0.08] blur-3xl">
@@ -106,7 +112,7 @@ export default function Header() {
               <div className="justify-self-start">
                 <a
                   href="#reserve"
-                  onClick={() => setOpen(false)}
+                  onClick={closeMenu}
                   className="inline-flex items-center justify-center rounded-full border border-gold px-4 py-2 text-sm font-medium text-charcoal no-underline transition hover:bg-gold/15"
                 >
                   Reserve
@@ -114,35 +120,32 @@ export default function Header() {
               </div>
 
               <div className="justify-self-center">
-                <Link
-                  href="/"
-                  onClick={() => setOpen(false)}
-                  className="inline-flex no-underline"
-                >
-                  <Wordmark className="h-14 w-auto sm:h-16" />
+                <Link href="/" onClick={closeMenu} className="inline-flex no-underline">
+                  <Wordmark className="h-20 w-auto sm:h-24" />
                 </Link>
               </div>
 
+              {/* X (no circle) */}
               <div className="justify-self-end">
                 <button
                   type="button"
-                  onClick={() => setOpen(false)}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-charcoal/10 bg-white/40 text-charcoal transition hover:border-charcoal/20"
+                  onClick={closeMenu}
+                  className="inline-flex items-center justify-center px-3 py-3 text-charcoal/90 transition hover:text-charcoal"
                   aria-label="Close menu"
                 >
-                  <span className="text-2xl leading-none">×</span>
+                  <span className="text-3xl leading-none">×</span>
                 </button>
               </div>
             </div>
 
-            {/* Nav (stagger) */}
+            {/* Nav */}
             <div className="flex flex-1 flex-col justify-center pb-10">
               <nav className="space-y-5">
                 {NAV.map((item, i) => (
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setOpen(false)}
+                    onClick={closeMenu}
                     className="block font-serif text-5xl leading-[0.96] tracking-tight text-charcoal no-underline transition hover:opacity-70 sm:text-6xl fz-navitem"
                     style={{ animationDelay: `${i * 60}ms` }}
                   >
@@ -171,7 +174,7 @@ export default function Header() {
               <span className="tracking-[0.18em]">AN ELEVATED DINING EXPERIENCE</span>
               <a
                 href="#reserve"
-                onClick={() => setOpen(false)}
+                onClick={closeMenu}
                 className="rounded-full border border-gold px-4 py-2 font-medium text-charcoal no-underline transition hover:bg-gold/15"
               >
                 Reserve

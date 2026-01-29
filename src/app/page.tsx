@@ -8,7 +8,7 @@ export default function HomePage() {
         <div className="md:col-span-7">
           <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-softgray">
             <span className="h-px w-10 bg-gold/50" />
-            CHEF-OWNED • COOKEVILLE, TN
+            — CHEF-OWNED • COOKEVILLE, TN —
           </div>
 
           {/* Brand lockup (replaces text H1) */}
@@ -19,7 +19,7 @@ export default function HomePage() {
               width={780}
               height={220}
               priority
-              className="h-auto w-[92%] max-w-[520px] sm:max-w-[620px]"
+              className="mx-auto h-auto w-[96%] max-w-[640px] sm:max-w-[760px]"
             />
           </div>
 
