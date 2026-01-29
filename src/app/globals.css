@@ -7,3 +7,22 @@ body {
   color: #1E1E1E;
   font-family: 'Inter', sans-serif;
 }
+
+/* Native smooth scrolling (simple + elegant) */
+html { scroll-behavior: smooth; }
+
+/* Overlay menu animations */
+@keyframes fzFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fzRiseIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fz-overlay {
+  animation: fzFadeIn 180ms ease-out both;
+}
+.fz-navitem {
+  animation: fzRiseIn 240ms ease-out both;
+}

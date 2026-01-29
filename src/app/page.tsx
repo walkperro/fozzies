@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function HomePage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
@@ -9,13 +11,20 @@ export default function HomePage() {
             CHEF-OWNED • COOKEVILLE, TN
           </div>
 
-          <h1 className="mt-5 font-serif text-5xl leading-[1.05] tracking-tight text-charcoal sm:text-6xl">
-            Fozzie’s
-          </h1>
+          {/* Brand lockup (replaces text H1) */}
+          <div className="mt-6">
+            <Image
+              src="/brand/title_tagline_no_bg.png"
+              alt="Fozzie's — An Elevated Dining Experience"
+              width={780}
+              height={220}
+              priority
+              className="h-auto w-[92%] max-w-[520px] sm:max-w-[620px]"
+            />
+          </div>
 
-          <p className="mt-4 max-w-xl text-lg text-charcoal/80">
-            An elevated dining experience—crafted for memorable evenings, celebrations,
-            and the moments worth dressing up for.
+          <p className="mt-6 max-w-xl text-lg text-charcoal/80">
+            Crafted for memorable evenings, celebrations, and the moments worth dressing up for.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
