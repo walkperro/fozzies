@@ -17,6 +17,13 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
 
+  // Mount-triggered logo fade (always runs once on page load)
+  const [logoIn, setLogoIn] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setLogoIn(true), 30);
+    return () => clearTimeout(t);
+  }, []);
+
   const closeMenu = () => {
     setClosing(true);
     setTimeout(() => {
@@ -72,7 +79,13 @@ export default function Header() {
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
               <Link href="/" className="inline-flex items-center no-underline">
                 <Wordmark
-                  className="h-14 w-auto sm:h-16 scale-[2.2] sm:scale-[2.6] translate-y-3 origin-center"
+                  className={[
+                    // Slightly bigger, without stretching navbar:
+                    "h-11 w-auto sm:h-12",
+                    // Micro fade-in (guaranteed):
+                    "transition-all duration-500 ease-out",
+                    logoIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[4px]",
+                  ].join(" ")}
                 />
               </Link>
             </div>
@@ -123,7 +136,7 @@ export default function Header() {
 
               <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                 <Link href="/" onClick={closeMenu} className="inline-flex no-underline">
-                  <Wordmark className="h-14 w-auto sm:h-16 scale-[2.2] sm:scale-[2.6] translate-y-3 origin-center" />
+                  <Wordmark className="h-11 w-auto sm:h-12" />
                 </Link>
               </div>
 
