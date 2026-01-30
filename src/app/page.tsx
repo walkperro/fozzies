@@ -22,11 +22,11 @@ export default function HomePage() {
             />
           </div>
 
-          <p className="mt-6 max-w-xl text-lg text-charcoal/80 mx-auto md:mx-0">
+          <p className="mt-6 mx-auto max-w-xl text-lg text-charcoal/80 md:mx-0">
             Crafted for memorable evenings, celebrations, and the moments worth dressing up for.
           </p>
 
-          <div className="mt-8 flex flex-wrap justify-center md:justify-start gap-3">
+          <div className="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
             <a
               href="#reserve"
               className="rounded-full border border-gold px-5 py-2.5 text-sm font-medium text-charcoal no-underline transition hover:bg-gold/15"
