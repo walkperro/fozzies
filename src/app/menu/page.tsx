@@ -1,5 +1,9 @@
 import Link from "next/link";
+import Image from "next/image";
+import { Allura } from "next/font/google";
 import { MENU_META, MENU_SECTIONS, type MenuItem } from "./menuData";
+
+const allura = Allura({ subsets: ["latin"], weight: "400" });
 
 function Section({
   title,
@@ -13,7 +17,7 @@ function Section({
   return (
     <section className="mt-12">
       <div className="text-center">
-        <h2 className="font-serif text-3xl tracking-tight text-charcoal">{title}</h2>
+        <h2 className={`${allura.className} text-5xl text-charcoal`}>{title}</h2>
         {subtitle ? <div className="mt-2 text-sm text-softgray">{subtitle}</div> : null}
         <div className="mx-auto mt-4 h-px w-40 bg-gold/60" />
       </div>
@@ -43,31 +47,38 @@ export default function MenuPage() {
     <main className="mx-auto w-full max-w-5xl px-4 py-14 sm:px-6">
       <header className="text-center">
         <div className="mx-auto max-w-3xl">
-          <div className="font-serif text-5xl text-charcoal">{MENU_META.title}</div>
+          <div className="mx-auto w-full max-w-[360px]">
+            <Image
+              src="/brand/title_solo_hq.png"
+              alt={MENU_META.title}
+              width={1200}
+              height={400}
+              priority
+              className="h-auto w-full"
+            />
+          </div>
 
-          <div className="mt-2 text-xs tracking-[0.22em] text-softgray">{MENU_META.subtitle}</div>
+          <div className="mt-3 text-xs tracking-[0.22em] text-softgray">{MENU_META.subtitle}</div>
 
           <div className="mx-auto mt-6 h-px w-64 bg-gold/60" />
 
-          <div className="mt-6 text-sm text-softgray">
-            <span className="text-gold">*</span> {MENU_META.glutenFreeNote}
-            <span className="mx-2">•</span>
-            {MENU_META.splitFee}
+          {/* Notes: 2 clean lines */}
+          <div className="mt-6 space-y-1 text-sm text-softgray">
+            <div>
+              <span className="text-gold">*</span> {MENU_META.glutenFreeNote}
+            </div>
+            <div>{MENU_META.splitFee}</div>
           </div>
 
+          {/* Single button: goes to PDF file */}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/menu/print"
-              className="inline-flex items-center justify-center rounded-full border border-gold px-5 py-2 text-sm font-medium text-charcoal no-underline transition hover:bg-gold/15"
-            >
-              Print / Save as PDF
-            </Link>
-
             <a
               href="/fozzies-menu.pdf"
-              className="inline-flex items-center justify-center rounded-full bg-charcoal px-5 py-2 text-sm font-medium text-cream no-underline transition hover:opacity-90"
+              className="inline-flex items-center justify-center rounded-full border border-gold px-5 py-2 text-sm font-medium text-charcoal no-underline transition hover:bg-gold/15"
+              target="_blank"
+              rel="noreferrer"
             >
-              Download PDF
+              Print / Save as PDF
             </a>
           </div>
         </div>
