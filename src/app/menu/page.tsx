@@ -58,7 +58,7 @@ export default function MenuPage() {
             />
           </div>
 
-          <div className="mt-3 text-xs tracking-[0.22em] text-softgray">{MENU_META.subtitle}</div>
+          <div className="-mt-2 text-xs leading-tight tracking-[0.22em] text-softgray">{MENU_META.subtitle}</div>
 
           <div className="mx-auto mt-6 h-px w-64 bg-gold/60" />
 
