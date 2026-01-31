@@ -5,8 +5,7 @@ import { MENU_META, MENU_SECTIONS } from "../menuData";
 
 export default function MenuPrintPage() {
   useEffect(() => {
-    // Optional auto-print: comment out if you don't want it
-    // setTimeout(() => window.print(), 300);
+    // setTimeout(() => window.print(), 300); // optional auto-print
   }, []);
 
   return (
@@ -16,7 +15,7 @@ export default function MenuPrintPage() {
           <div className="text-3xl font-serif">{MENU_META.title}</div>
           <div className="mt-2 text-sm text-neutral-600">{MENU_META.subtitle}</div>
           <div className="mt-3 text-xs text-neutral-600">
-            {MENU_META.glutenFreeNote} • {MENU_META.splitFee}
+            * gluten-free options available • {MENU_META.splitFee}
           </div>
         </div>
 
@@ -33,9 +32,7 @@ export default function MenuPrintPage() {
           <section key={section.title}>
             <div className="mb-3 border-b border-neutral-200 pb-2">
               <div className="text-xl font-serif">{section.title}</div>
-              {section.subtitle ? (
-                <div className="mt-1 text-sm text-neutral-600">{section.subtitle}</div>
-              ) : null}
+              {section.subtitle ? <div className="mt-1 text-sm text-neutral-600">{section.subtitle}</div> : null}
             </div>
 
             <div className="space-y-4">
@@ -63,9 +60,10 @@ export default function MenuPrintPage() {
               <div className="text-xs tracking-wider text-neutral-500">RESERVATIONS</div>
               <div className="mt-2">{MENU_META.reservations}</div>
             </div>
+
             <div>
               <div className="text-xs tracking-wider text-neutral-500">HOURS</div>
-              <div className="mt-2 space-y-1">
+              <div className="mt-2 space-y-2">
                 {MENU_META.hours.map((h) => (
                   <div key={h.label}>
                     <span className="text-neutral-500">{h.label} </span>
@@ -74,9 +72,10 @@ export default function MenuPrintPage() {
                 ))}
               </div>
             </div>
+
             <div>
               <div className="text-xs tracking-wider text-neutral-500">FAQ</div>
-              <div className="mt-2 space-y-1">
+              <div className="mt-2 space-y-2">
                 {MENU_META.faq.map((f) => (
                   <div key={f.label}>
                     <span className="text-neutral-500">{f.label} — </span>
@@ -84,6 +83,7 @@ export default function MenuPrintPage() {
                   </div>
                 ))}
               </div>
+
               <div className="mt-4 text-xs tracking-wider text-neutral-500">SOCIAL</div>
               <div className="mt-2 space-y-1">
                 {MENU_META.social.map((s) => (

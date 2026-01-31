@@ -1,20 +1,20 @@
 export const MENU_META = {
   title: "Fozzie’s",
   subtitle: "Dinner menu — updated seasonally.",
-  glutenFreeNote: "* = Gluten Free",
-  splitFee: "Split Fee Charge — $10",
+  glutenFreeNote: "* gluten-free options available",
+  splitFee: "split-fee charge — $10",
   reservations: "Reservations — OpenTable",
   hours: [
-    { label: "Dinner", value: "Tues–Sat • 5–9 pm" },
-    { label: "Happy Hour", value: "Tues–Sat • 4–6 pm" },
+    { label: "Dinner", value: "Tuesday–Saturday | 5:00–9:00 PM" },
+    { label: "Happy Hour", value: "Tuesday–Saturday | 4:00–6:00 PM" },
   ],
   faq: [
     { label: "Dress Code", value: "Smart casual" },
     { label: "Reservations", value: "Recommended" },
   ],
   social: [
-    { label: "FB", value: "—" },
-    { label: "IG", value: "—" },
+    { label: "Facebook", value: "—" },
+    { label: "Instagram", value: "—" },
   ],
 };
 
@@ -33,116 +33,61 @@ export type MenuSection = {
 export const MENU_SECTIONS: MenuSection[] = [
   {
     title: "Beginnings",
-    subtitle: "Appetizers",
     items: [
-      {
-        name: "Sweet Homemade Rolls",
-        desc: ["Honey compound butter"],
-      },
+      { name: "Sweet Homemade Rolls", desc: ["honey compound butter"] },
       {
         name: "Avery’s Fried Pickles",
         gf: true,
-        desc: ["Housemade pickles", "Sriracha aioli or jalapeño ranch"],
+        desc: ["housemade pickles", "sriracha aioli or jalapeño ranch"],
       },
       {
         name: "Stuffed Portobello Caps",
         gf: true,
-        desc: [
-          "Spinach, sun-dried tomatoes, goat cheese",
-          "Bell peppers, onions, shaved parmesan",
-        ],
+        desc: ["spinach, sun-dried tomatoes, goat cheese, bell peppers, onions, shaved parmesan"],
       },
-      {
-        name: "Waka Waka Shrimp",
-        gf: true,
-        desc: ["Crispy gulf shrimp", "Waka Waka sauce"],
-      },
-      {
-        name: "Soup du Jour",
-        desc: ["Cup or bowl", "Daily chef’s selection"],
-      },
-      {
-        name: "Seasonal Flatbread",
-      },
-      {
-        name: "Crab Cakes",
-        desc: ["Lump crab meat", "Corn relish", "Waka Waka sauce"],
-      },
+      { name: "Waka Waka Shrimp", gf: true, desc: ["crispy gulf shrimp", "waka waka sauce"] },
+      { name: "Soup de Lour", desc: ["cup or bowl", "daily chef’s selection"] },
+      { name: "Crab Cakes", desc: ["lump crab meat", "corn relish", "waka waka sauce"] },
+      { name: "Seasonal Flatbread" },
     ],
   },
   {
     title: "Mains",
     items: [
-      {
-        name: "Shrimp & Grits",
-        gf: true,
-        desc: ["Gulf shrimp", "Seasonal vegetables", "Gorda grits"],
-      },
+      { name: "Shrimp & Grits", gf: true, desc: ["gulf shrimp", "seasonal vegetables", "gorda grits"] },
       {
         name: "Sara’s Southwest Pasta",
-        desc: [
-          "Southwest cream sauce",
-          "Fettuccine",
-          "Grilled chicken",
-          "Can sub shrimp or salmon",
-        ],
+        desc: ["southwest cream sauce, fettuccine, grilled chicken", "can substitute shrimp or salmon"],
       },
-      {
-        name: "Smoked Pork Belly",
-        gf: true,
-        desc: ["Sweet chili glaze", "Jasmine rice", "Haricot verts", "Sriracha aioli"],
-      },
+      { name: "Smoked Pork Belly", gf: true, desc: ["sweet chili glaze", "jasmine rice", "haricots verts", "sriracha aioli"] },
       {
         name: "B & C’s Salmon",
         gf: true,
-        desc: [
-          "Blackened salmon fillet",
-          "Hot honey citrus glaze",
-          "Sweet potato hash",
-          "Crispy Brussels",
-        ],
+        desc: ["blackened salmon fillet", "hot honey citrus glaze", "sweet potato hash", "crispy brussels sprouts"],
       },
+      { name: "Fozzie’s Burger of the Week", desc: ["chef’s weekly selection, fries, creole ketchup"] },
       {
-        name: "Fozzie’s Burger of the Week",
-        desc: ["Fries", "Creole ketchup"],
-      },
-      {
-        name: "Steak Fries",
+        name: "Steak Frites",
         gf: true,
-        desc: [
-          "Wagyu flat iron",
-          "Fries",
-          "Housemade horseradish",
-          "Creole ketchup",
-          "Add over-easy eggs",
-        ],
+        desc: ["wagyu flat iron", "fries", "housemade horseradish", "creole ketchup", "add over-easy eggs"],
       },
       {
         name: "Fresh Gulf Catch",
         gf: true,
-        desc: [
-          "Chef’s selection (grilled or blackened)",
-          "Gorda grits",
-          "Seasonal vegetables",
-        ],
+        desc: ["chef’s selection", "grilled or blackened", "gorda grits", "seasonal vegetables"],
       },
-      {
-        name: "Seasonal Salad",
-        desc: ["Add chicken, shrimp, or salmon"],
-      },
-      {
-        name: "Spanish Salad",
-        desc: ["Add chicken, shrimp, or salmon"],
-      },
+      { name: "Seasonal Salad", desc: ["add chicken, shrimp, or salmon"] },
+      { name: "Spanish Salad", desc: ["add chicken, shrimp, or salmon"] },
     ],
   },
   {
     title: "Desserts",
     items: [
-      { name: "Bread Pudding" },
-      { name: "Mousse", desc: ["Chef’s selection"] },
-      { name: "Brownie Sundae", gf: true, desc: ["Salted caramel ice cream"] },
-      { name: "Crème Brûlée", gf: true },
+      { name: "Bread Pudding", desc: ["chef’s seasonal selection"] },
+      { name: "Mousse", desc: ["chef’s selection"] },
+      { name: "Brownie Sundae", desc: ["salted caramel ice cream"] },
+      { name: "Crème Brûlée" },
+      { name: "Housemade Rolls", desc: ["chef’s selection"] },
     ],
   },
 ];
