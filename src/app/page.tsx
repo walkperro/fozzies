@@ -40,10 +40,11 @@ export default function HomePage() {
               alt={sl.alt}
               fill
               priority={idx === 0}
-              className="object-cover"
+              className={`object-cover ${idx === active ? "fz-kenburns" : ""}`}
               sizes="(min-width: 768px) 1100px, 100vw"
             />
-          </div>
+          <div className="fz-hero-scrim" />
+</div>
         ))}
 
         {/* Soft luxury tint + readability */}
@@ -52,7 +53,7 @@ export default function HomePage() {
       </div>
 
       {/* Foreground content */}
-      <div className="relative px-6 py-14 sm:px-10 sm:py-16">
+      <div className="relative px-6 py-14 sm:px-10 sm:py-16 z-10">
         <div className="text-center">
           <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-softgray">
             <span className="h-px w-10 bg-gold/50" />
