@@ -48,17 +48,20 @@ export default function HomePage() {
         ))}
 
         {/* Soft luxury tint + readability */}
-        <div className="absolute inset-0 bg-cream/80" />
-        <div className="absolute inset-0 bg-gradient-to-b from-cream/70 via-cream/85 to-cream/98" />
-      </div>
+</div>
 
-      {/* Foreground content */}
+        {/* Overlay: subtle gold wash + readable vignette */}
+        <div className="absolute inset-0 bg-[rgba(200,162,74,0.18)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/25 to-black/55" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.10)_0%,rgba(0,0,0,0.55)_70%)]" />
+
+{/* Foreground content */}
       <div className="relative px-6 py-14 sm:px-10 sm:py-16 z-10">
         <div className="text-center">
-          <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-softgray">
-            <span className="h-px w-10 bg-gold/50" />
+          <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-cream/85">
+            <span className="h-px w-10 bg-gold/70" />
             CHEF-OWNED • COOKEVILLE, TN
-            <span className="h-px w-10 bg-gold/50" />
+            <span className="h-px w-10 bg-gold/70" />
           </div>
 
           <div className="mt-7 flex justify-center">
@@ -72,20 +75,20 @@ export default function HomePage() {
             />
           </div>
 
-          <p className="mx-auto mt-6 max-w-xl text-lg text-charcoal/80">
+          <p className="mx-auto mt-6 max-w-xl text-lg text-cream/90">
             Crafted for memorable evenings, celebrations, and the moments worth dressing up for.
           </p>
 
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <a
               href="#reserve"
-              className="rounded-full border border-gold px-5 py-2.5 text-sm font-medium text-charcoal no-underline transition hover:bg-gold/15"
+              className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-charcoal no-underline transition hover:opacity-90"
             >
               Reserve a Table
             </a>
             <a
               href="/menu"
-              className="rounded-full border border-charcoal/15 px-5 py-2.5 text-sm font-medium text-charcoal/80 no-underline transition hover:border-charcoal/25 hover:text-charcoal"
+              className="rounded-full border border-charcoal/15 px-5 py-2.5 text-sm font-medium text-cream/90 no-underline transition hover:border-charcoal/25 hover:text-charcoal"
             >
               View Menu
             </a>
@@ -112,17 +115,17 @@ export default function HomePage() {
         </div>
 
         <div className="md:col-span-6 text-center md:text-left">
-          <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-softgray">
-            <span className="h-px w-10 bg-gold/50" />
+          <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-cream/85">
+            <span className="h-px w-10 bg-gold/70" />
             THE CHEF
-            <span className="h-px w-10 bg-gold/50" />
+            <span className="h-px w-10 bg-gold/70" />
           </div>
 
           <h2 className="mt-4 font-serif text-3xl text-charcoal">
             Hospitality first. Flavor always.
           </h2>
 
-          <p className="mt-4 text-[15px] leading-7 text-softgray">
+          <p className="mt-4 text-[15px] leading-7 text-cream/85">
             Chef-driven plates, warm service, and a dining room built for celebrations,
             date nights, and the moments worth dressing up for.
           </p>
@@ -133,10 +136,10 @@ export default function HomePage() {
       {/* Signature Dishes */}
       <section className="mt-16">
         <div className="text-center">
-          <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-softgray">
-            <span className="h-px w-10 bg-gold/50" />
+          <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-cream/85">
+            <span className="h-px w-10 bg-gold/70" />
             SIGNATURE DISHES
-            <span className="h-px w-10 bg-gold/50" />
+            <span className="h-px w-10 bg-gold/70" />
           </div>
           <h2 className="mt-4 font-serif text-3xl text-charcoal">A few guest favorites</h2>
           <div className="mx-auto mt-5 h-px w-48 bg-gold/60" />
@@ -195,10 +198,10 @@ export default function HomePage() {
       {/* Dining Room Atmosphere */}
       <section className="mt-16">
         <div className="text-center">
-          <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-softgray">
-            <span className="h-px w-10 bg-gold/50" />
+          <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-cream/85">
+            <span className="h-px w-10 bg-gold/70" />
             THE ATMOSPHERE
-            <span className="h-px w-10 bg-gold/50" />
+            <span className="h-px w-10 bg-gold/70" />
           </div>
           <h2 className="mt-4 font-serif text-3xl text-charcoal">Timeless. Intimate. Refined.</h2>
           <div className="mx-auto mt-5 h-px w-48 bg-gold/60" />
