@@ -7,9 +7,8 @@ export default function HomePage() {
   const slides = useMemo(
     () => [
       { src: "/gallery/dining_room_1.png", alt: "Dining room ambiance" },
+      { src: "/gallery/dining_room_2.png", alt: "Dining room bar ambiance" },
       { src: "/gallery/chef_greeting_guests.png", alt: "Chef greeting guests" },
-      { src: "/gallery/dining_room_2.png", alt: "Bar and dining room atmosphere" },
-      { src: "/gallery/couples_dinner.png", alt: "An intimate dining moment" },
     ],
     []
   );

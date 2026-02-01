@@ -7,9 +7,8 @@ export default function HomePage() {
   const slides = useMemo(
     () => [
       { src: "/gallery/dining_room_1.png", alt: "Dining room ambiance" },
+      { src: "/gallery/dining_room_2.png", alt: "Dining room bar ambiance" },
       { src: "/gallery/chef_greeting_guests.png", alt: "Chef greeting guests" },
-      { src: "/gallery/dining_room_2.png", alt: "Bar and dining room atmosphere" },
-      { src: "/gallery/couples_dinner.png", alt: "An intimate dining moment" },
     ],
     []
   );
@@ -98,7 +97,7 @@ export default function HomePage() {
       {/* Chef */}
       <section className="mt-16 grid gap-10 md:grid-cols-12 md:items-center">
         <div className="md:col-span-6">
-          <div className="overflow-hidden rounded-none md:border border-charcoal/10 bg-cream shadow-sm transition hover:shadow-md">
+          <div className="overflow-hidden rounded-none md:rounded-2xl border border-charcoal/10 bg-cream shadow-sm transition hover:shadow-md">
             <div className="relative aspect-[3/4] md:aspect-[4/3] w-full">
               <Image
                 src="/gallery/chef_hero.jpg"
@@ -124,7 +123,8 @@ export default function HomePage() {
           </h2>
 
           <p className="mt-4 text-[15px] leading-7 text-softgray">
-            From scratch-made classics to elevated seasonal plates — every detail is built around your table: warm hospitality, confident flavors, and an unhurried, white-tablecloth experience.
+            Chef-driven plates, warm service, and a dining room built for celebrations,
+            date nights, and the moments worth dressing up for.
           </p>
 
         </div>
@@ -152,7 +152,7 @@ export default function HomePage() {
             ].map((img) => (
               <div
                 key={img.src}
-                className="snap-center shrink-0 w-[82%] overflow-hidden border border-charcoal/10 bg-cream shadow-sm"
+                className="snap-center shrink-0 w-[82%] overflow-hidden rounded-2xl border border-charcoal/10 bg-cream shadow-sm"
               >
                 <div className="relative aspect-[4/3] w-full">
                   <Image
@@ -176,7 +176,7 @@ export default function HomePage() {
           ].map((img) => (
             <div
               key={img.src}
-              className="overflow-hidden rounded-none md:border border-charcoal/10 bg-cream shadow-sm transition hover:shadow-md"
+              className="overflow-hidden rounded-none md:rounded-2xl border border-charcoal/10 bg-cream shadow-sm transition hover:shadow-md"
             >
               <div className="relative aspect-[4/3] w-full">
                 <Image
@@ -205,7 +205,7 @@ export default function HomePage() {
         </div>
 
         <div className="mt-10 grid gap-6 md:grid-cols-12">
-          <div className="md:col-span-6 overflow-hidden border border-charcoal/10 bg-cream shadow-sm">
+          <div className="md:col-span-7 overflow-hidden rounded-2xl border border-charcoal/10 bg-cream shadow-sm">
             <div className="relative aspect-[16/10] w-full">
               <Image
                 src="/gallery/dining_room_1.png"
@@ -217,13 +217,13 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="md:col-span-6 overflow-hidden border border-charcoal/10 bg-cream shadow-sm">
-            <div className="relative aspect-[16/10] w-full">
+          <div className="md:col-span-5 overflow-hidden rounded-2xl border border-charcoal/10 bg-cream shadow-sm">
+            <div className="relative aspect-[4/3] w-full">
               <Image
-                src="/gallery/couples_dinner.png"
+                src="/gallery/chef_greeting_guests.png"
                 alt="Table setting and warm lighting"
                 fill
-                className="object-cover object-[50%_22%] object-center"
+                className="object-cover"
                 sizes="(min-width: 768px) 40vw, 100vw"
               />
             </div>
