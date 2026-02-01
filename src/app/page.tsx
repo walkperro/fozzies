@@ -50,10 +50,10 @@ export default function HomePage() {
           <div className="overflow-hidden rounded-3xl border border-charcoal/10 bg-cream shadow-sm transition hover:shadow-md">
             <div className="relative aspect-[4/3] w-full">
               <Image
-                src="/gallery/chef_greeting_guests.png"
+                src="/gallery/chef_hero.jpg"
                 alt="Chef greeting guests at Fozzie’s"
                 fill
-                className="object-cover transition duration-500 hover:scale-[1.02]"
+                className="object-contain transition duration-500 hover:scale-[1.02]"
                 sizes="(min-width: 768px) 50vw, 100vw"
                 priority={false}
               />
@@ -123,7 +123,7 @@ export default function HomePage() {
                     src={img.src}
                     alt={img.alt}
                     fill
-                    className="object-cover"
+                    className="object-contain"
                     sizes="80vw"
                   />
                 </div>
@@ -147,7 +147,7 @@ export default function HomePage() {
                   src={img.src}
                   alt={img.alt}
                   fill
-                  className="object-cover transition duration-500 hover:scale-[1.02]"
+                  className="object-contain transition duration-500 hover:scale-[1.02]"
                   sizes="(min-width: 768px) 33vw, 100vw"
                 />
               </div>
@@ -164,7 +164,7 @@ export default function HomePage() {
             THE ATMOSPHERE
             <span className="h-px w-10 bg-gold/50" />
           </div>
-          <h2 className="mt-4 font-serif text-3xl text-charcoal">White tablecloth energy</h2>
+          <h2 className="mt-4 font-serif text-3xl text-charcoal">Timeless. Intimate. Refined.</h2>
           <div className="mx-auto mt-5 h-px w-48 bg-gold/60" />
         </div>
 
@@ -175,7 +175,7 @@ export default function HomePage() {
                 src="/gallery/dining_room_1.png"
                 alt="Dining room ambience"
                 fill
-                className="object-cover"
+                className="object-contain"
                 sizes="(min-width: 768px) 60vw, 100vw"
               />
             </div>
@@ -184,10 +184,10 @@ export default function HomePage() {
           <div className="md:col-span-5 overflow-hidden rounded-3xl border border-charcoal/10 bg-cream shadow-sm">
             <div className="relative aspect-[4/5] w-full">
               <Image
-                src="/gallery/dining_room_2.png"
+                src="/gallery/chef_greeting_guests.png"
                 alt="Table setting and warm lighting"
                 fill
-                className="object-cover"
+                className="object-contain"
                 sizes="(min-width: 768px) 40vw, 100vw"
               />
             </div>
