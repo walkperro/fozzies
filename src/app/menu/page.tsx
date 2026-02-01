@@ -47,7 +47,7 @@ export default function MenuPage() {
     <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">
       <header className="text-center">
         <div className="mx-auto max-w-3xl">
-          <div className="mx-auto relative h-[100px] w-full max-w-[140px] overflow-visible">
+          <div className="mx-auto relative h-[100px] w-full max-w-[160px] overflow-visible mt-6">
             <Image
               src="/brand/f_logo_hq.png"
               alt={MENU_META.title}

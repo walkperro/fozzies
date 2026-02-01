@@ -1,7 +1,7 @@
 export const MENU_META = {
   title: "Fozzie’s",
   subtitle: "Dinner menu — updated seasonally.",
-  glutenFreeNote: "* gluten-free options available",
+  glutenFreeNote: "gluten-free options available",
   splitFee: "split-fee charge — $10",
   reservations: "Reservations — OpenTable",
   hours: [
