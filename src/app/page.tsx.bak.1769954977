@@ -52,9 +52,9 @@ export default function HomePage() {
         </div>
 
         {/* Foreground content */}
-        <div className="relative z-10 px-6 py-14 sm:px-10 sm:py-16 text-white [text-shadow:0_2px_18px_rgba(0,0,0,0.92)]">
+        <div className="relative z-10 px-6 py-14 sm:px-10 sm:py-16 text-cream [text-shadow:0_2px_18px_rgba(0,0,0,0.90)]">
           <div className="text-center">
-            <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-white/90">
+            <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-cream/85">
               <span className="h-px w-10 bg-gold/70" />
               CHEF-OWNED • COOKEVILLE, TN
               <span className="h-px w-10 bg-gold/70" />
@@ -62,16 +62,16 @@ export default function HomePage() {
 
             <div className="mt-7 flex justify-center">
               <Image
-                src="/brand/title_tagline_hq_white.png"
+                src="/brand/title_tagline_hq.png"
                 alt="Fozzie's — An Elevated Dining Experience"
                 width={820}
                 height={240}
                 priority
-                className="h-auto w-[94%] max-w-[640px] sm:max-w-[760px] "
+                className="h-auto w-[94%] max-w-[640px] sm:max-w-[760px] [filter:invert(1)_brightness(1.08)]"
               />
             </div>
 
-            <p className="mx-auto mt-6 max-w-xl text-lg text-white/90">
+            <p className="mx-auto mt-6 max-w-xl text-lg text-cream/90">
               Crafted for memorable evenings, celebrations, and the moments worth dressing up for.
             </p>
 
@@ -84,7 +84,7 @@ export default function HomePage() {
               </a>
               <a
                 href="/menu"
-                className="rounded-full border border-white/35 px-5 py-2.5 text-sm font-medium text-white/90 no-underline transition hover:border-white/55"
+                className="rounded-full border border-cream/30 px-5 py-2.5 text-sm font-medium text-cream/90 no-underline transition hover:border-cream/50"
               >
                 View Menu
               </a>
@@ -112,7 +112,7 @@ export default function HomePage() {
         </div>
 
         <div className="md:col-span-6 text-center md:text-left">
-          <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-white/90">
+          <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-cream/85">
             <span className="h-px w-10 bg-gold/70" />
             THE CHEF
             <span className="h-px w-10 bg-gold/70" />
@@ -122,7 +122,7 @@ export default function HomePage() {
             Hospitality first. Flavor always.
           </h2>
 
-          <p className="mt-4 text-[15px] leading-7 text-white/90">
+          <p className="mt-4 text-[15px] leading-7 text-cream/85">
             Chef-driven plates, warm service, and a dining room built for celebrations,
             date nights, and the moments worth dressing up for.
           </p>
@@ -133,7 +133,7 @@ export default function HomePage() {
       {/* Signature Dishes */}
       <section className="mt-16">
         <div className="text-center">
-          <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-white/90">
+          <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-cream/85">
             <span className="h-px w-10 bg-gold/70" />
             SIGNATURE DISHES
             <span className="h-px w-10 bg-gold/70" />
@@ -195,7 +195,7 @@ export default function HomePage() {
       {/* Dining Room Atmosphere */}
       <section className="mt-16">
         <div className="text-center">
-          <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-white/90">
+          <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-cream/85">
             <span className="h-px w-10 bg-gold/70" />
             THE ATMOSPHERE
             <span className="h-px w-10 bg-gold/70" />

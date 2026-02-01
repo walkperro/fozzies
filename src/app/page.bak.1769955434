@@ -62,12 +62,12 @@ export default function HomePage() {
 
             <div className="mt-7 flex justify-center">
               <Image
-                src="/brand/title_tagline_hq_white.png"
+                src="/brand/title_tagline_hq.png"
                 alt="Fozzie's — An Elevated Dining Experience"
                 width={820}
                 height={240}
                 priority
-                className="h-auto w-[94%] max-w-[640px] sm:max-w-[760px] "
+                className="h-auto w-[94%] max-w-[640px] sm:max-w-[760px] [filter:invert(1)_brightness(1.08)]"
               />
             </div>
 
