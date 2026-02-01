@@ -17,7 +17,7 @@ export default function HomePage() {
   useEffect(() => {
     const id = setInterval(() => {
       setActive((i) => (i + 1) % slides.length);
-    }, 5200);
+    }, 11000);
     return () => clearInterval(id);
   }, [slides.length]);
 
@@ -31,7 +31,7 @@ export default function HomePage() {
           <div
             key={sl.src}
             className={[
-              "absolute inset-0 transition-opacity duration-1000 ease-in-out",
+              "absolute inset-0 transition-opacity duration-[3200ms] ease-linear",
               idx === active ? "opacity-100" : "opacity-0",
             ].join(" ")}
           >
@@ -48,8 +48,8 @@ export default function HomePage() {
         ))}
 
         {/* Soft luxury tint + readability */}
-        <div className="absolute inset-0 bg-cream/70 backdrop-blur-[2px]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-cream/40 via-cream/70 to-cream/95" />
+        <div className="absolute inset-0 bg-cream/80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-cream/70 via-cream/85 to-cream/98" />
       </div>
 
       {/* Foreground content */}
