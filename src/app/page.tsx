@@ -1,17 +1,66 @@
-import Image from "next/image";
+"use client";
 
+import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
 export default function HomePage() {
+  const slides = useMemo(
+    () => [
+      { src: "/gallery/dining_room_1.png", alt: "Dining room ambiance" },
+      { src: "/gallery/dining_room_2.png", alt: "Dining room bar ambiance" },
+      { src: "/gallery/chef_greeting_guests.png", alt: "Chef greeting guests" },
+    ],
+    []
+  );
+
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setActive((i) => (i + 1) % slides.length);
+    }, 5200);
+    return () => clearInterval(id);
+  }, [slides.length]);
+
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-      <section className="grid gap-10 md:grid-cols-12 md:items-start">
-        <div className="md:col-span-7 text-center md:text-left">
+      <section className="relative overflow-hidden rounded-3xl border border-charcoal/10 bg-cream shadow-sm">
+      {/* Background slides */}
+      <div className="absolute inset-0">
+        {slides.map((sl, idx) => (
+          <div
+            key={sl.src}
+            className={[
+              "absolute inset-0 transition-opacity duration-1000 ease-in-out",
+              idx === active ? "opacity-100" : "opacity-0",
+            ].join(" ")}
+          >
+            <Image
+              src={sl.src}
+              alt={sl.alt}
+              fill
+              priority={idx === 0}
+              className="object-cover"
+              sizes="(min-width: 768px) 1100px, 100vw"
+            />
+          </div>
+        ))}
+
+        {/* Soft luxury tint + readability */}
+        <div className="absolute inset-0 bg-cream/70 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-cream/40 via-cream/70 to-cream/95" />
+      </div>
+
+      {/* Foreground content */}
+      <div className="relative px-6 py-14 sm:px-10 sm:py-16">
+        <div className="text-center">
           <div className="inline-flex items-center gap-3 text-xs tracking-[0.22em] text-softgray">
             <span className="h-px w-10 bg-gold/50" />
             CHEF-OWNED • COOKEVILLE, TN
             <span className="h-px w-10 bg-gold/50" />
           </div>
 
-          <div className="mt-6 flex justify-center md:justify-start">
+          <div className="mt-7 flex justify-center">
             <Image
               src="/brand/title_tagline_hq.png"
               alt="Fozzie's — An Elevated Dining Experience"
@@ -22,11 +71,11 @@ export default function HomePage() {
             />
           </div>
 
-          <p className="mt-6 mx-auto max-w-xl text-lg text-charcoal/80 md:mx-0">
+          <p className="mx-auto mt-6 max-w-xl text-lg text-charcoal/80">
             Crafted for memorable evenings, celebrations, and the moments worth dressing up for.
           </p>
 
-          <div className="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             <a
               href="#reserve"
               className="rounded-full border border-gold px-5 py-2.5 text-sm font-medium text-charcoal no-underline transition hover:bg-gold/15"
@@ -41,13 +90,13 @@ export default function HomePage() {
             </a>
           </div>
         </div>
-      
-      </section>
+      </div>
+    </section>
 
       {/* Chef */}
       <section className="mt-16 grid gap-10 md:grid-cols-12 md:items-center">
         <div className="md:col-span-6">
-          <div className="overflow-hidden rounded-3xl border border-charcoal/10 bg-cream shadow-sm transition hover:shadow-md">
+          <div className="overflow-hidden rounded-2xl border border-charcoal/10 bg-cream shadow-sm transition hover:shadow-md">
             <div className="relative aspect-[4/3] w-full">
               <Image
                 src="/gallery/chef_hero.jpg"
@@ -77,20 +126,6 @@ export default function HomePage() {
             date nights, and the moments worth dressing up for.
           </p>
 
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3 md:justify-start">
-            <a
-              href="/menu"
-              className="inline-flex items-center justify-center rounded-full border border-gold px-5 py-2 text-sm font-medium text-charcoal no-underline transition hover:bg-gold/15"
-            >
-              View Menu
-            </a>
-            <a
-              href="#reserve"
-              className="inline-flex items-center justify-center rounded-full bg-charcoal px-5 py-2 text-sm font-medium text-cream no-underline transition hover:opacity-90"
-            >
-              Reserve a Table
-            </a>
-          </div>
         </div>
       </section>
 
@@ -116,7 +151,7 @@ export default function HomePage() {
             ].map((img) => (
               <div
                 key={img.src}
-                className="snap-center shrink-0 w-[82%] overflow-hidden rounded-3xl border border-charcoal/10 bg-cream shadow-sm"
+                className="snap-center shrink-0 w-[82%] overflow-hidden rounded-2xl border border-charcoal/10 bg-cream shadow-sm"
               >
                 <div className="relative aspect-[4/3] w-full">
                   <Image
@@ -140,7 +175,7 @@ export default function HomePage() {
           ].map((img) => (
             <div
               key={img.src}
-              className="overflow-hidden rounded-3xl border border-charcoal/10 bg-cream shadow-sm transition hover:shadow-md"
+              className="overflow-hidden rounded-2xl border border-charcoal/10 bg-cream shadow-sm transition hover:shadow-md"
             >
               <div className="relative aspect-[4/3] w-full">
                 <Image
@@ -169,7 +204,7 @@ export default function HomePage() {
         </div>
 
         <div className="mt-10 grid gap-6 md:grid-cols-12">
-          <div className="md:col-span-7 overflow-hidden rounded-3xl border border-charcoal/10 bg-cream shadow-sm">
+          <div className="md:col-span-7 overflow-hidden rounded-2xl border border-charcoal/10 bg-cream shadow-sm">
             <div className="relative aspect-[16/10] w-full">
               <Image
                 src="/gallery/dining_room_1.png"
@@ -181,8 +216,8 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="md:col-span-5 overflow-hidden rounded-3xl border border-charcoal/10 bg-cream shadow-sm">
-            <div className="relative aspect-[4/5] w-full">
+          <div className="md:col-span-5 overflow-hidden rounded-2xl border border-charcoal/10 bg-cream shadow-sm">
+            <div className="relative aspect-[4/3] w-full">
               <Image
                 src="/gallery/chef_greeting_guests.png"
                 alt="Table setting and warm lighting"
