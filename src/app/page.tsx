@@ -24,7 +24,7 @@ export default function HomePage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-      <section className="relative overflow-hidden rounded-3xl border border-charcoal/10 bg-cream shadow-sm">
+      <section className="relative overflow-hidden border border-charcoal/10 bg-cream shadow-sm">
       {/* Background slides */}
       <div className="absolute inset-0">
         {slides.map((sl, idx) => (
@@ -96,13 +96,13 @@ export default function HomePage() {
       {/* Chef */}
       <section className="mt-16 grid gap-10 md:grid-cols-12 md:items-center">
         <div className="md:col-span-6">
-          <div className="overflow-hidden rounded-2xl border border-charcoal/10 bg-cream shadow-sm transition hover:shadow-md">
+          <div className="overflow-hidden border border-charcoal/10 bg-cream shadow-sm transition hover:shadow-md">
             <div className="relative aspect-[4/3] w-full">
               <Image
                 src="/gallery/chef_hero.jpg"
                 alt="Chef greeting guests at Fozzie’s"
                 fill
-                className="object-contain transition duration-500 hover:scale-[1.02]"
+                className="object-cover transition duration-500 hover:scale-[1.01]"
                 sizes="(min-width: 768px) 50vw, 100vw"
                 priority={false}
               />
@@ -151,14 +151,14 @@ export default function HomePage() {
             ].map((img) => (
               <div
                 key={img.src}
-                className="snap-center shrink-0 w-[82%] overflow-hidden rounded-2xl border border-charcoal/10 bg-cream shadow-sm"
+                className="snap-center shrink-0 w-[82%] overflow-hidden border border-charcoal/10 bg-cream shadow-sm"
               >
                 <div className="relative aspect-[4/3] w-full">
                   <Image
                     src={img.src}
                     alt={img.alt}
                     fill
-                    className="object-contain"
+                    className="object-cover"
                     sizes="80vw"
                   />
                 </div>
@@ -175,14 +175,14 @@ export default function HomePage() {
           ].map((img) => (
             <div
               key={img.src}
-              className="overflow-hidden rounded-2xl border border-charcoal/10 bg-cream shadow-sm transition hover:shadow-md"
+              className="overflow-hidden border border-charcoal/10 bg-cream shadow-sm transition hover:shadow-md"
             >
               <div className="relative aspect-[4/3] w-full">
                 <Image
                   src={img.src}
                   alt={img.alt}
                   fill
-                  className="object-contain transition duration-500 hover:scale-[1.02]"
+                  className="object-cover transition duration-500 hover:scale-[1.01]"
                   sizes="(min-width: 768px) 33vw, 100vw"
                 />
               </div>
@@ -204,25 +204,25 @@ export default function HomePage() {
         </div>
 
         <div className="mt-10 grid gap-6 md:grid-cols-12">
-          <div className="md:col-span-7 overflow-hidden rounded-2xl border border-charcoal/10 bg-cream shadow-sm">
+          <div className="md:col-span-7 overflow-hidden border border-charcoal/10 bg-cream shadow-sm">
             <div className="relative aspect-[16/10] w-full">
               <Image
                 src="/gallery/dining_room_1.png"
                 alt="Dining room ambience"
                 fill
-                className="object-contain"
+                className="object-cover"
                 sizes="(min-width: 768px) 60vw, 100vw"
               />
             </div>
           </div>
 
-          <div className="md:col-span-5 overflow-hidden rounded-2xl border border-charcoal/10 bg-cream shadow-sm">
+          <div className="md:col-span-5 overflow-hidden border border-charcoal/10 bg-cream shadow-sm">
             <div className="relative aspect-[4/3] w-full">
               <Image
                 src="/gallery/chef_greeting_guests.png"
                 alt="Table setting and warm lighting"
                 fill
-                className="object-contain"
+                className="object-cover"
                 sizes="(min-width: 768px) 40vw, 100vw"
               />
             </div>
