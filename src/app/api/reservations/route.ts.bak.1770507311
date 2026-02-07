@@ -44,6 +44,14 @@ export async function POST(req: Request) {
       auth: { persistSession: false },
     });
 
+    // DEBUG: verify schemas exist in this Supabase project
+    const { data: schemas, error: sErr } = await supabase
+      .from("information_schema.schemata")
+      .select("schema_name")
+      .in("schema_name", ["fozzies", "walkperro", "shortit", "shared"]);
+
+    console.log("Schema check:", schemas, "err:", sErr);
+
     // Insert into schema: fozzies
     const { data, error } = await supabase
       .schema("fozzies")
