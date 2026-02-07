@@ -230,15 +230,13 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
 
       {/* Reserve */}
       <section id="reserve" className="mt-16 scroll-mt-24">
         <ReserveForm />
       </section>
 
-
-
+      </section>
     </main>
   );
 }
