@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import ReserveForm from "@/components/ReserveForm";
 
 export default function HomePage() {
   const slides = useMemo(
@@ -57,7 +58,7 @@ export default function HomePage() {
           <div className="text-center">
             <div className="inline-flex items-center gap-3 whitespace-nowrap text-[11px] tracking-[0.18em] sm:text-xs sm:tracking-[0.22em] text-white/90">
               <span className="h-px w-10 bg-gold/70" />
-              CHEF-OWNED • COOKEVILLE, TN
+              CHEF-DRIVEN • COOKEVILLE, TN
               <span className="h-px w-10 bg-gold/70" />
             </div>
 
@@ -229,6 +230,12 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
+      {/* Reserve */}
+      <section id="reserve" className="mt-16 scroll-mt-24">
+        <ReserveForm />
+      </section>
+
       </section>
     </main>
   );

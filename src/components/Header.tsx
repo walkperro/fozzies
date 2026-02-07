@@ -61,7 +61,7 @@ export default function Header() {
             {/* Left: Reserve */}
             <div className="flex items-center">
               <a
-                href="#reserve"
+                href="/#reserve"
                 className="inline-flex items-center justify-center rounded-full border border-gold px-4 py-2 text-sm font-medium text-charcoal no-underline transition hover:bg-gold/15"
               >
                 Reserve
@@ -113,7 +113,7 @@ export default function Header() {
             <div className="relative flex h-16 items-center justify-between sm:h-[68px]">
               <div className="flex items-center">
                 <a
-                  href="#reserve"
+                  href="/#reserve"
                   onClick={closeMenu}
                   className="inline-flex items-center justify-center rounded-full border border-gold px-4 py-2 text-sm font-medium text-charcoal no-underline transition hover:bg-gold/15"
                 >
@@ -172,7 +172,7 @@ export default function Header() {
             >
               <span className="tracking-[0.18em]">AN ELEVATED DINING EXPERIENCE</span>
               <a
-                href="#reserve"
+                href="/#reserve"
                 onClick={closeMenu}
                 className="rounded-full border border-gold px-4 py-2 font-medium text-charcoal no-underline transition hover:bg-gold/15"
               >
