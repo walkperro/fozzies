@@ -92,12 +92,71 @@ Reservation ID: ${data?.id}`;
 
       // If your domain isn't verified yet in Resend, set FROM_EMAIL to an address Resend allows for testing.
       await resend.emails.send({
-        from: FROM_EMAIL,
-        to: [TO_EMAIL],
-        subject,
-        text,
-      });
-    }
+      from: (process.env.RESEND_FROM || "Fozzie's <onboarding@resend.dev>"),
+      to,
+      subject,
+      replyTo: email,
+      text,
+      html: `
+<div style="background:#F7F4EF;padding:24px 0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;">
+  <div style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid rgba(30,30,30,0.12);">
+    <div style="padding:22px 22px 10px;">
+      <div style="font-size:12px;letter-spacing:0.18em;color:#8E8E8E;text-transform:uppercase;">
+        Reservation Request
+      </div>
+      <div style="font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.2;color:#1E1E1E;margin-top:8px;">
+        ${partySize} guests • ${date} at ${time}
+      </div>
+      <div style="height:1px;background:rgba(200,162,74,0.55);margin:14px 0 0;"></div>
+    </div>
+
+    <div style="padding:18px 22px 22px;color:#1E1E1E;">
+      <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);width:140px;color:#8E8E8E;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;">Name</td>
+          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);font-size:15px;">${name}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);color:#8E8E8E;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;">Email</td>
+          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);font-size:15px;">
+            <a href="mailto:${email}" style="color:#1E1E1E;text-decoration:none;border-bottom:1px solid rgba(200,162,74,0.7);">${email}</a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);color:#8E8E8E;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;">Phone</td>
+          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);font-size:15px;">
+            ${phone ? `<a href="tel:${phone}" style="color:#1E1E1E;text-decoration:none;border-bottom:1px solid rgba(200,162,74,0.7);">${phone}</a>` : "(none)"}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);color:#8E8E8E;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;">Party Size</td>
+          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);font-size:15px;">${partySize}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);color:#8E8E8E;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;">Date</td>
+          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);font-size:15px;">${date}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);color:#8E8E8E;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;">Time</td>
+          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);font-size:15px;">${time}</td>
+        </tr>
+      </table>
+
+      <div style="margin-top:16px;">
+        <div style="color:#8E8E8E;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">Notes</div>
+        <div style="background:#F7F4EF;border:1px solid rgba(30,30,30,0.10);padding:12px;font-size:14px;line-height:1.5;">
+          ${notes && notes.trim().length ? notes.replaceAll('<','&lt;').replaceAll('>','&gt;') : "—"}
+        </div>
+      </div>
+
+      <div style="margin-top:16px;color:#8E8E8E;font-size:12px;">
+        Source: website • Status: new
+      </div>
+    </div>
+  </div>
+</div>
+      `,
+    });}
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
