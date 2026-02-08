@@ -21,6 +21,7 @@ type Row = {
 const STATUSES = ["new", "confirmed", "declined", "completed"] as const;
 const VIEWS = ["active", "archived", "all", ...STATUSES] as const;
 
+const TIME_VIEWS = ["upcoming", "past", "allDates"] as const;
 function fmt(dt: string) {
   try {
     return new Date(dt).toLocaleString();
@@ -32,7 +33,8 @@ function fmt(dt: string) {
 export default function AdminReservationsTable({ initialRows }: { initialRows: Row[] }) {
   const [rows, setRows] = useState<Row[]>(initialRows);
   const [filter, setFilter] = useState<(typeof VIEWS)[number]>("active");
-  const [busy, setBusy] = useState<string | null>(null);
+  const [timeView, setTimeView] = useState<(typeof TIME_VIEWS)[number]>("upcoming");
+const [busy, setBusy] = useState<string | null>(null);
 
   const [notifyOpen, setNotifyOpen] = useState(false);
   const [notifyRow, setNotifyRow] = useState<Row | null>(null);
@@ -106,14 +108,49 @@ Reply with what works best and we’ll confirm right away.
   }
 const filtered = useMemo(() => {
     const base = rows.filter((r) => !r.deleted_at); // never show soft-deleted in UI
-    if (filter === "all") return base;
-    if (filter === "active") return base.filter((r) => !r.archived_at);
-    if (filter === "archived") return base.filter((r) => !!r.archived_at);
-    // status filter
-    return base.filter((r) => (r.status || "new") === filter);
-  }, [rows, filter]);
 
-  async function patchRow(id: string, payload: any) {
+    // Start from view filter
+    let out = base;
+    if (filter !== "all") {
+      if (filter === "active") out = out.filter((r) => !r.archived_at);
+      else if (filter === "archived") out = out.filter((r) => !!r.archived_at);
+      else out = out.filter((r) => (r.status || "new") === filter);
+    }
+
+    // Time-based filter (date+time)
+    const now = new Date();
+
+    function toDT(r: Row) {
+      // Interpret as local time
+      const iso = `${r.date}T${r.time}:00`;
+      const d = new Date(iso);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    if (timeView !== "allDates") {
+      out = out.filter((r) => {
+        const d = toDT(r);
+        if (!d) return false;
+        return timeView === "upcoming" ? d.getTime() >= now.getTime() : d.getTime() < now.getTime();
+      });
+    }
+
+    // Sort: upcoming soonest first; past most recent first; allDates = upcoming first then past
+    out = out.slice().sort((a, b) => {
+      const da = toDT(a);
+      const db = toDT(b);
+      const ta = da ? da.getTime() : 0;
+      const tb = db ? db.getTime() : 0;
+
+      if (timeView === "past") return tb - ta;
+      if (timeView === "upcoming") return ta - tb;
+
+      // allDates: simple chronological ascending
+      return ta - tb;
+    });
+
+    return out;
+  }, [rows, filter, timeView]);async function patchRow(id: string, payload: any) {
     setBusy(id);
     try {
       const res = await fetch(`/api/admin/reservations/${id}`, {
@@ -174,6 +211,25 @@ const filtered = useMemo(() => {
             {k.toUpperCase()}
           </button>
         ))}
+        <div className="w-full h-px bg-charcoal/10 my-3" />
+
+        <div className="flex flex-wrap items-center gap-2 w-full">
+          {TIME_VIEWS.map((k) => (
+            <button
+              key={k}
+              onClick={() => setTimeView(k)}
+              className={[
+                "rounded-full px-3 py-1.5 text-xs border transition",
+                timeView === k
+                  ? "border-gold bg-gold/20 text-charcoal"
+                  : "border-charcoal/15 bg-ivory text-softgray hover:bg-ivory/70",
+              ].join(" ")}
+            >
+              {k === "allDates" ? "ALL DATES" : k.toUpperCase()}
+            </button>
+          ))}
+        </div>
+
         <div className="ml-auto text-xs text-softgray">Showing {filtered.length} of {rows.filter(r=>!r.deleted_at).length}</div>
       </div>
 
