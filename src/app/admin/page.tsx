@@ -11,6 +11,8 @@ export default async function AdminPage() {
     .from("reservations")
     .is("deleted_at", null)
     .select("id,created_at,name,email,phone,party_size,date,time,notes,status,source, archived_at, deleted_at")
+    .order("date", { ascending: true })
+    .order("time", { ascending: true })
     .order("created_at", { ascending: false })
     .limit(250);
 
