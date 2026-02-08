@@ -212,6 +212,56 @@ const filtered = useMemo(() => {
     } finally {
       setBusy(null);
     }
+
+
+  async function declineAndNotify(r: Row) {
+    setBusy(r.id);
+    try {
+      // 1) set status declined
+      const ok = await patchRow(r.id, { status: "declined" });
+      if (!ok) return;
+
+      // 2) send email (template)
+      const defaultMsg =
+        `We couldn’t confirm ${r.time} on ${r.date}. ` +
+        `Reply with another preferred time (or day) and we’ll do our best to accommodate you.`;
+
+      const msg = prompt("Decline email message (edit if needed):", defaultMsg) ?? defaultMsg;
+
+      await notifyGuest(r.id, "declined", msg);
+
+      // Update UI row
+      setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, status: "declined" } : x)));
+      alert("Declined + emailed guest ✅");
+    } catch (e) {
+      console.error(e);
+      alert("Decline+email failed.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function rescheduleAndNotify(r: Row) {
+    setBusy(r.id);
+    try {
+      // Reschedule: email only (no status change)
+      const defaultMsg =
+        `We can accommodate you, but we may need to adjust the time. ` +
+        `Would ${r.time} on ${r.date} work, or would you prefer an alternative time? ` +
+        `Reply with what works best and we’ll confirm.`;
+
+      const msg = prompt("Reschedule email message (edit if needed):", defaultMsg) ?? defaultMsg;
+
+      await notifyGuest(r.id, "reschedule", msg);
+
+      alert("Reschedule email sent ✅");
+    } catch (e) {
+      console.error(e);
+      alert("Reschedule email failed.");
+    } finally {
+      setBusy(null);
+    }
+  }
   }
 `, {
         method: "PATCH",
@@ -378,6 +428,25 @@ const filtered = useMemo(() => {
                     >
                       confirm + email
                     </button>
+
+                    <button
+                      disabled={busy === r.id}
+                      onClick={() => rescheduleAndNotify(r)}
+                      className="rounded-full border border-charcoal/15 px-3 py-1.5 text-xs text-softgray hover:bg-ivory disabled:opacity-60"
+                      title="Email guest to request an alternate time"
+                    >
+                      reschedule + email
+                    </button>
+
+                    <button
+                      disabled={busy === r.id}
+                      onClick={() => declineAndNotify(r)}
+                      className="rounded-full border border-red-500/30 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-60"
+                      title="Set declined and email guest"
+                    >
+                      decline + email
+                    </button>
+
 
 
 
