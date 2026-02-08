@@ -37,6 +37,63 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
 const [q, setQ] = useState<string>("");
 const [busy, setBusy] = useState<string | null>(null);
 
+  const [notifyModalOpen, setNotifyModalOpen] = useState(false);
+  const [notifyKind, setNotifyKind] = useState<"confirmed" | "declined" | "reschedule">("confirmed");
+  const [notifyMessage, setNotifyMessage] = useState("");
+  const [notifyTarget, setNotifyTarget] = useState<Row | null>(null);
+  const [notifyAlsoStatus, setNotifyAlsoStatus] = useState<string | null>(null);
+
+  function openNotifyModal(
+    r: Row,
+    kind: "confirmed" | "declined" | "reschedule",
+    defaultMsg: string,
+    alsoStatus: string | null
+  ) {
+    setNotifyTarget(r);
+    setNotifyKind(kind);
+    setNotifyMessage(defaultMsg);
+    setNotifyAlsoStatus(alsoStatus);
+    setNotifyModalOpen(true);
+  }
+
+  async function sendNotifyModal() {
+    if (!notifyTarget) return;
+
+    const r = notifyTarget;
+    const msg = (notifyMessage || "").trim();
+    if (!msg) {
+      alert("Please enter a message.");
+      return;
+    }
+
+    setBusy(r.id);
+    try {
+      // Optional: update status first (confirmed / declined)
+      if (notifyAlsoStatus) {
+        const ok = await patchRow(r.id, { status: notifyAlsoStatus });
+        if (!ok) return;
+
+        setRows((prev) =>
+          prev.map((x) => (x.id === r.id ? { ...x, status: notifyAlsoStatus } : x))
+        );
+      }
+
+      await notifyGuest(r.id, notifyKind, msg);
+
+      setNotifyModalOpen(false);
+      setNotifyTarget(null);
+      setNotifyAlsoStatus(null);
+
+      alert("Email sent ✅");
+    } catch (e) {
+      console.error(e);
+      alert("Email failed.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+
   const [notifyOpen, setNotifyOpen] = useState(false);
   const [notifyRow, setNotifyRow] = useState<Row | null>(null);
   const [notifyKind, setNotifyKind] = useState<"confirmed" | "declined" | "reschedule">("confirmed");
@@ -186,81 +243,27 @@ const filtered = useMemo(() => {
     return true;
   }
 
-  async function confirmAndNotify(r: Row) {
-    setBusy(r.id);
-    try {
-      // 1) set status confirmed
-      const ok = await patchRow(r.id, { status: "confirmed" });
-      if (!ok) return;
-
-      // 2) send email (template)
-      const defaultMsg =
-        `Your reservation is confirmed for ${r.time} on ${r.date}. ` +
-        `If you need to adjust the time, reply to this email and we’ll do our best to accommodate.`;
-
-      // Optional prompt so chef can tweak message quickly
-      const msg = prompt("Confirmation email message (edit if needed):", defaultMsg) ?? defaultMsg;
-
-      await notifyGuest(r.id, "confirmed", msg);
-
-      // Update UI row
-      setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, status: "confirmed" } : x)));
-      alert("Confirmed + emailed guest ✅");
-    } catch (e) {
-      console.error(e);
-      alert("Confirm+email failed.");
-    } finally {
-      setBusy(null);
-    }
-
-
-  async function declineAndNotify(r: Row) {
-    setBusy(r.id);
-    try {
-      // 1) set status declined
-      const ok = await patchRow(r.id, { status: "declined" });
-      if (!ok) return;
-
-      // 2) send email (template)
-      const defaultMsg =
-        `We couldn’t confirm ${r.time} on ${r.date}. ` +
-        `Reply with another preferred time (or day) and we’ll do our best to accommodate you.`;
-
-      const msg = prompt("Decline email message (edit if needed):", defaultMsg) ?? defaultMsg;
-
-      await notifyGuest(r.id, "declined", msg);
-
-      // Update UI row
-      setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, status: "declined" } : x)));
-      alert("Declined + emailed guest ✅");
-    } catch (e) {
-      console.error(e);
-      alert("Decline+email failed.");
-    } finally {
-      setBusy(null);
-    }
+    async function confirmAndNotify(r: Row) {
+    const defaultMsg = `We look forward to seeing you at ${r.time} on ${r.date}.`;
+    openNotifyModal(r, "confirmed", defaultMsg, "confirmed");
   }
 
-  async function rescheduleAndNotify(r: Row) {
-    setBusy(r.id);
-    try {
-      // Reschedule: email only (no status change)
-      const defaultMsg =
-        `We can accommodate you, but we may need to adjust the time. ` +
-        `Would ${r.time} on ${r.date} work, or would you prefer an alternative time? ` +
-        `Reply with what works best and we’ll confirm.`;
 
-      const msg = prompt("Reschedule email message (edit if needed):", defaultMsg) ?? defaultMsg;
+    async function declineAndNotify(r: Row) {
+    const defaultMsg =
+      `We couldn’t confirm ${r.time} on ${r.date}. ` +
+      `Reply with another preferred time (or day) and we’ll do our best to accommodate you.`;
+    openNotifyModal(r, "declined", defaultMsg, "declined");
+  }
+  }
 
-      await notifyGuest(r.id, "reschedule", msg);
-
-      alert("Reschedule email sent ✅");
-    } catch (e) {
-      console.error(e);
-      alert("Reschedule email failed.");
-    } finally {
-      setBusy(null);
-    }
+    async function rescheduleAndNotify(r: Row) {
+    const defaultMsg =
+      `We can accommodate you, but we may need to adjust the time. ` +
+      `Would ${r.time} on ${r.date} work, or would you prefer an alternative time? ` +
+      `Reply with what works best and we’ll confirm.`;
+    openNotifyModal(r, "reschedule", defaultMsg, null);
+  }
   }
   }
 `, {
@@ -548,7 +551,82 @@ const filtered = useMemo(() => {
           </div>
         </div>
       )}
+      {/* Notify Modal */}
+      {notifyModalOpen && notifyTarget && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-charcoal/40"
+            onClick={() => setNotifyModalOpen(false)}
+          />
+          <div className="relative w-full max-w-xl border border-charcoal/10 bg-cream shadow-sm">
+            <div className="p-5 sm:p-6">
+              <div className="text-[11px] tracking-[0.18em] text-softgray">
+                RESERVATION RESPONSE
+              </div>
+              <div className="mt-2 font-serif text-2xl text-charcoal">
+                Email {notifyTarget.name}
+              </div>
 
-</div>
-    );
+              <div className="mt-2 text-sm text-softgray">
+                {notifyTarget.date} {notifyTarget.time} • party {notifyTarget.party_size}
+              </div>
+
+              <div className="mt-5">
+                <label className="block text-[11px] tracking-[0.18em] text-softgray">
+                  TEMPLATE
+                </label>
+                <select
+                  value={notifyKind}
+                  onChange={(e) =>
+                    setNotifyKind(e.target.value as "confirmed" | "declined" | "reschedule")
+                  }
+                  className="mt-2 w-full border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none"
+                >
+                  <option value="confirmed">Confirmed</option>
+                  <option value="declined">Declined</option>
+                  <option value="reschedule">Reschedule</option>
+                </select>
+                <div className="mt-2 text-xs text-softgray">
+                  {notifyAlsoStatus
+                    ? `This will also set status → ${notifyAlsoStatus}.`
+                    : "This will send an email only (no status change)."}
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <label className="block text-[11px] tracking-[0.18em] text-softgray">
+                  MESSAGE
+                </label>
+                <textarea
+                  value={notifyMessage}
+                  onChange={(e) => setNotifyMessage(e.target.value)}
+                  rows={7}
+                  className="mt-2 w-full border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none"
+                />
+              </div>
+
+              <div className="mt-6 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setNotifyModalOpen(false)}
+                  className="rounded-full border border-charcoal/15 px-4 py-2 text-sm text-softgray hover:bg-ivory"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={busy === notifyTarget.id}
+                  onClick={sendNotifyModal}
+                  className="rounded-full bg-gold px-4 py-2 text-sm font-semibold text-charcoal hover:opacity-90 disabled:opacity-60"
+                >
+                  Send Email
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
 }
