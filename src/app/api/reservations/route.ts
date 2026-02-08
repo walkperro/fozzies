@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 
+export const runtime = "nodejs";
+
 type ReservePayload = {
   name: string;
   email: string;
@@ -10,6 +12,7 @@ type ReservePayload = {
   time: string;      // HH:MM
   partySize: number; // 1..20
   notes?: string;
+  website?: string;  // honeypot
 };
 
 function bad(msg: string, status = 400) {
@@ -19,6 +22,11 @@ function bad(msg: string, status = 400) {
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as Partial<ReservePayload>;
+
+    // Honeypot
+    if ((body.website || "").trim().length > 0) {
+      return NextResponse.json({ ok: true });
+    }
 
     const name = (body.name || "").trim();
     const email = (body.email || "").trim();
@@ -34,8 +42,9 @@ export async function POST(req: Request) {
     if (!time || !/^\d{2}:\d{2}$/.test(time)) return bad("Valid time is required");
     if (!Number.isFinite(partySize) || partySize < 1 || partySize > 20) return bad("Party size must be 1–20");
 
-    const SUPABASE_URL = process.env.SUPABASE_URL!;
-    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       return bad("Server not configured (Supabase env vars missing)", 500);
     }
@@ -66,21 +75,23 @@ export async function POST(req: Request) {
       return bad(`Supabase insert failed: ${error.message}`, 500);
     }
 
-    // Email via Resend (optional but recommended)
+    // Email via Resend (optional)
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    const TO_EMAIL = process.env.RESERVATION_TO_EMAIL || "fozziesdining@gmail.com";
-    const FROM_EMAIL = process.env.RESERVATION_FROM_EMAIL || "reservations@fozziesdining.com";
+    const RESEND_FROM = process.env.RESEND_FROM || "Fozzie's <onboarding@resend.dev>";
+    const RESERVE_TO_EMAIL = process.env.RESERVE_TO_EMAIL || "fozziesdining@gmail.com";
 
     if (RESEND_API_KEY) {
       const resend = new Resend(RESEND_API_KEY);
 
       const subject = `New Reservation Request • ${date} ${time} • Party of ${partySize}`;
+
       const text =
 `New reservation request:
 
 Name: ${name}
 Email: ${email}
 Phone: ${phone || "-"}
+
 Date: ${date}
 Time: ${time}
 Party size: ${partySize}
@@ -88,16 +99,15 @@ Party size: ${partySize}
 Notes:
 ${notes || "-"}
 
-Reservation ID: ${data?.id}`;
+Reservation ID: ${data?.id || "-"}`;
 
-      // If your domain isn't verified yet in Resend, set FROM_EMAIL to an address Resend allows for testing.
       await resend.emails.send({
-      from: (process.env.RESEND_FROM || "Fozzie's <onboarding@resend.dev>"),
-      to,
-      subject,
-      replyTo: email,
-      text,
-      html: `
+        from: RESEND_FROM,
+        to: RESERVE_TO_EMAIL,
+        subject,
+        replyTo: email,
+        text,
+        html: `
 <div style="background:#F7F4EF;padding:24px 0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;">
   <div style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid rgba(30,30,30,0.12);">
     <div style="padding:22px 22px 10px;">
@@ -129,16 +139,8 @@ Reservation ID: ${data?.id}`;
           </td>
         </tr>
         <tr>
-          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);color:#8E8E8E;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;">Party Size</td>
-          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);font-size:15px;">${partySize}</td>
-        </tr>
-        <tr>
-          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);color:#8E8E8E;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;">Date</td>
-          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);font-size:15px;">${date}</td>
-        </tr>
-        <tr>
-          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);color:#8E8E8E;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;">Time</td>
-          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);font-size:15px;">${time}</td>
+          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);color:#8E8E8E;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;">Reservation ID</td>
+          <td style="padding:10px 0;border-bottom:1px solid rgba(30,30,30,0.08);font-size:15px;">${data?.id || "-"}</td>
         </tr>
       </table>
 
@@ -155,9 +157,11 @@ Reservation ID: ${data?.id}`;
     </div>
   </div>
 </div>
-      `,
-    });}
+        `,
+      });
+    }
 
+    // ✅ Step 3 style response: do not leak row data
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || "Unknown error" }, { status: 500 });
