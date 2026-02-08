@@ -9,7 +9,8 @@ export default async function AdminPage() {
   const { data, error } = await supabase
     .schema("fozzies")
     .from("reservations")
-    .select("id,created_at,name,email,phone,party_size,date,time,notes,status,source")
+    .is("deleted_at", null)
+    .select("id,created_at,name,email,phone,party_size,date,time,notes,status,source, archived_at, deleted_at")
     .order("created_at", { ascending: false })
     .limit(250);
 
