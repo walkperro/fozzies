@@ -14,14 +14,12 @@ type Row = {
   notes: string | null;
   status: string;
   source: string | null;
-
-  // optional (if you added these columns)
   archived_at?: string | null;
   deleted_at?: string | null;
 };
 
 const STATUSES = ["new", "confirmed", "declined", "completed"] as const;
-const VIEWS = ["all", ...STATUSES, "archived"] as const;
+const VIEWS = ["active", "archived", "all", ...STATUSES] as const;
 
 function fmt(dt: string) {
   try {
@@ -31,35 +29,29 @@ function fmt(dt: string) {
   }
 }
 
-function safeUpper(s: string) {
-  return (s || "").toUpperCase();
-}
-
 export default function AdminReservationsTable({ initialRows }: { initialRows: Row[] }) {
   const [rows, setRows] = useState<Row[]>(initialRows);
-  const [filter, setFilter] = useState<(typeof VIEWS)[number]>("all");
+  const [filter, setFilter] = useState<(typeof VIEWS)[number]>("active");
   const [busy, setBusy] = useState<string | null>(null);
 
-  const visible = useMemo(() => {
-    // Never show soft-deleted rows anywhere
-    const base = rows.filter((r) => !r.deleted_at);
-
-    if (filter === "all") return base.filter((r) => !r.archived_at);
+  const filtered = useMemo(() => {
+    const base = rows.filter((r) => !r.deleted_at); // never show soft-deleted in UI
+    if (filter === "all") return base;
+    if (filter === "active") return base.filter((r) => !r.archived_at);
     if (filter === "archived") return base.filter((r) => !!r.archived_at);
-
-    // status tabs show only non-archived
-    return base.filter((r) => !r.archived_at && (r.status || "new") === filter);
+    // status filter
+    return base.filter((r) => (r.status || "new") === filter);
   }, [rows, filter]);
 
-  async function patchRow(id: string, patch: Record<string, any>) {
+  async function patchRow(id: string, payload: any) {
     setBusy(id);
     try {
       const res = await fetch(`/api/admin/reservations/${id}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(patch),
+        body: JSON.stringify(payload),
       });
-      const j = await res.json().catch(() => ({}));
+      const j = await res.json();
       if (!res.ok || !j.ok) throw new Error(j.error || "Update failed");
       return true;
     } catch (e) {
@@ -74,63 +66,26 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
   async function setStatus(id: string, status: string) {
     const ok = await patchRow(id, { status });
     if (!ok) return;
-
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
   }
 
-  async function archiveToggle(id: string, next: boolean) {
-    const ok = await patchRow(id, { archive: next });
+  async function toggleArchive(r: Row) {
+    const next = !r.archived_at;
+    const ok = await patchRow(r.id, { archive: next });
     if (!ok) return;
-
-    // we can’t rely on server returning timestamp, so we set a client hint
     setRows((prev) =>
-      prev.map((r) =>
-        r.id === id ? { ...r, archived_at: next ? new Date().toISOString() : null } : r
+      prev.map((x) =>
+        x.id === r.id ? { ...x, archived_at: next ? new Date().toISOString() : null } : x
       )
     );
   }
 
-  async function softDelete(id: string) {
-    if (!confirm("Delete this reservation? (This is reversible only in DB)")) return;
-    const ok = await patchRow(id, { softDelete: true });
+  async function softDelete(r: Row) {
+    if (!confirm(`Soft-delete this reservation from ${r.name}? (You can restore later if we add it)`)) return;
+    const ok = await patchRow(r.id, { softDelete: true });
     if (!ok) return;
-
-    setRows((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, deleted_at: new Date().toISOString() } : r))
-    );
+    setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, deleted_at: new Date().toISOString() } : x)));
   }
-
-  async function notifyGuest(id: string, kind: "confirmed" | "declined" | "reschedule") {
-    const msg =
-      prompt(
-        kind === "confirmed"
-          ? "Optional message to guest (Confirmed). Leave blank for default:"
-          : kind === "declined"
-            ? "Optional message to guest (Declined). Leave blank for default:"
-            : "Type the reschedule message (suggest alternate time), or leave blank for default:"
-      ) || "";
-
-    setBusy(id);
-    try {
-      const res = await fetch(`/api/admin/reservations/${id}/notify`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ kind, message: msg }),
-      });
-      const j = await res.json().catch(() => ({}));
-      if (!res.ok || !j.ok) throw new Error(j.error || "Email failed");
-
-      alert("Email sent ✅");
-    } catch (e) {
-      console.error(e);
-      alert("Could not send email.");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  const showing = visible.length;
-  const total = rows.filter((r) => !r.deleted_at).length;
 
   return (
     <div className="p-4 sm:p-6">
@@ -149,10 +104,7 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
             {k.toUpperCase()}
           </button>
         ))}
-
-        <div className="ml-auto text-xs text-softgray">
-          Showing {showing} of {total}
-        </div>
+        <div className="ml-auto text-xs text-softgray">Showing {filtered.length} of {rows.filter(r=>!r.deleted_at).length}</div>
       </div>
 
       <div className="mt-5 overflow-x-auto">
@@ -167,116 +119,70 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
               <th className="py-2 text-left font-medium">Actions</th>
             </tr>
           </thead>
-
           <tbody className="text-charcoal">
-            {visible.map((r) => {
-              const isArchived = !!r.archived_at;
-
-              return (
-                <tr key={r.id} className="border-b border-charcoal/10 align-top">
-                  <td className="py-3 pr-3 whitespace-nowrap">{fmt(r.created_at)}</td>
-
-                  <td className="py-3 pr-3">
-                    <div className="font-medium">{r.name}</div>
-                    <div className="text-softgray">
-                      <a className="underline" href={`mailto:${r.email}`}>
-                        {r.email}
-                      </a>
-                      {r.phone ? (
-                        <>
-                          {" • "}
-                          <a className="underline" href={`tel:${r.phone}`}>
-                            {r.phone}
-                          </a>
-                        </>
-                      ) : null}
-                    </div>
-                  </td>
-
-                  <td className="py-3 pr-3 whitespace-nowrap">
-                    {r.date} {r.time} • party {r.party_size}
-                  </td>
-
-                  <td className="py-3 pr-3 min-w-[220px]">
-                    <div className="text-softgray">{r.notes || "—"}</div>
-                  </td>
-
-                  <td className="py-3 pr-3 whitespace-nowrap">
-                    <span className="rounded-full border border-charcoal/15 bg-ivory px-2 py-1 text-xs">
-                      {safeUpper(r.status || "new")}
-                      {isArchived ? " • ARCHIVED" : ""}
-                    </span>
-                  </td>
-
-                  <td className="py-3 whitespace-nowrap">
-                    <div className="flex flex-wrap gap-2">
-                      {/* Status buttons */}
-                      {!isArchived && (
-                        <>
-                          {STATUSES.map((s) => (
-                            <button
-                              key={s}
-                              disabled={busy === r.id}
-                              onClick={() => setStatus(r.id, s)}
-                              className="rounded-full border border-gold px-3 py-1.5 text-xs text-charcoal hover:bg-gold/15 disabled:opacity-60"
-                            >
-                              {s}
-                            </button>
-                          ))}
-                        </>
-                      )}
-
-                      {/* Archive / Unarchive */}
+            {filtered.map((r) => (
+              <tr key={r.id} className="border-b border-charcoal/10 align-top">
+                <td className="py-3 pr-3 whitespace-nowrap">{fmt(r.created_at)}</td>
+                <td className="py-3 pr-3">
+                  <div className="font-medium">{r.name}</div>
+                  <div className="text-softgray">
+                    <a className="underline" href={`mailto:${r.email}`}>{r.email}</a>
+                    {r.phone ? (
+                      <>
+                        {" • "}
+                        <a className="underline" href={`tel:${r.phone}`}>{r.phone}</a>
+                      </>
+                    ) : null}
+                  </div>
+                  {r.archived_at ? (
+                    <div className="mt-1 text-[11px] text-softgray">Archived</div>
+                  ) : null}
+                </td>
+                <td className="py-3 pr-3 whitespace-nowrap">
+                  {r.date} {r.time} • party {r.party_size}
+                </td>
+                <td className="py-3 pr-3 min-w-[220px]">
+                  <div className="text-softgray">{r.notes || "—"}</div>
+                </td>
+                <td className="py-3 pr-3 whitespace-nowrap">
+                  <span className="rounded-full border border-charcoal/15 bg-ivory px-2 py-1 text-xs">
+                    {(r.status || "new").toUpperCase()}
+                  </span>
+                </td>
+                <td className="py-3 whitespace-nowrap">
+                  <div className="flex flex-wrap gap-2">
+                    {STATUSES.map((s) => (
                       <button
+                        key={s}
                         disabled={busy === r.id}
-                        onClick={() => archiveToggle(r.id, !isArchived)}
-                        className="rounded-full border border-charcoal/20 px-3 py-1.5 text-xs text-charcoal hover:bg-charcoal/5 disabled:opacity-60"
+                        onClick={() => setStatus(r.id, s)}
+                        className="rounded-full border border-gold px-3 py-1.5 text-xs text-charcoal hover:bg-gold/15 disabled:opacity-60"
                       >
-                        {isArchived ? "unarchive" : "archive"}
+                        {s}
                       </button>
+                    ))}
 
-                      {/* Email guest actions */}
-                      <button
-                        disabled={busy === r.id}
-                        onClick={() => notifyGuest(r.id, "confirmed")}
-                        className="rounded-full border border-charcoal/20 px-3 py-1.5 text-xs text-charcoal hover:bg-charcoal/5 disabled:opacity-60"
-                      >
-                        email: confirmed
-                      </button>
+                    <button
+                      disabled={busy === r.id}
+                      onClick={() => toggleArchive(r)}
+                      className="rounded-full border border-charcoal/15 px-3 py-1.5 text-xs text-softgray hover:bg-ivory disabled:opacity-60"
+                    >
+                      {r.archived_at ? "unarchive" : "archive"}
+                    </button>
 
-                      <button
-                        disabled={busy === r.id}
-                        onClick={() => notifyGuest(r.id, "declined")}
-                        className="rounded-full border border-charcoal/20 px-3 py-1.5 text-xs text-charcoal hover:bg-charcoal/5 disabled:opacity-60"
-                      >
-                        email: declined
-                      </button>
+                    <button
+                      disabled={busy === r.id}
+                      onClick={() => softDelete(r)}
+                      className="rounded-full border border-red-500/30 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-60"
+                    >
+                      delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
 
-                      <button
-                        disabled={busy === r.id}
-                        onClick={() => notifyGuest(r.id, "reschedule")}
-                        className="rounded-full border border-charcoal/20 px-3 py-1.5 text-xs text-charcoal hover:bg-charcoal/5 disabled:opacity-60"
-                      >
-                        email: reschedule
-                      </button>
-
-                      {/* Soft delete only allowed in Archived view */}
-                      {isArchived && (
-                        <button
-                          disabled={busy === r.id}
-                          onClick={() => softDelete(r.id)}
-                          className="rounded-full border border-red-500/40 px-3 py-1.5 text-xs text-red-700 hover:bg-red-500/10 disabled:opacity-60"
-                        >
-                          delete
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-
-            {visible.length === 0 && (
+            {filtered.length === 0 && (
               <tr>
                 <td className="py-10 text-center text-softgray" colSpan={6}>
                   No reservations in this view.
@@ -285,10 +191,6 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
             )}
           </tbody>
         </table>
-      </div>
-
-      <div className="mt-4 text-xs text-softgray">
-        Tip: archive keeps history without clutter. Delete is only available for archived items.
       </div>
     </div>
   );
