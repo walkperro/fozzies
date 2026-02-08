@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const runtime = "nodejs";
 
-export async function PATCH(req: Request, ctx: { params: { id: string } }) {
-  const { id } = ctx.params;
-  const body = await req.json().catch(() => ({}));
-  const status = (body.status || "").toString();
+export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params;
+
+  const body = await req.json().catch(() => ({} as any));
+  const status = (body?.status || "").toString();
 
   const allowed = new Set(["new", "confirmed", "declined", "completed"]);
   if (!allowed.has(status)) {
