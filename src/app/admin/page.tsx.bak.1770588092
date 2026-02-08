@@ -9,8 +9,8 @@ export default async function AdminPage() {
   const { data, error } = await supabase
     .schema("fozzies")
     .from("reservations")
-    .is("deleted_at", null)
     .select("id,created_at,name,email,phone,party_size,date,time,notes,status,source, archived_at, deleted_at")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false })
     .limit(250);
 
@@ -22,9 +22,7 @@ export default async function AdminPage() {
         <div>
           <div className="text-[11px] tracking-[0.18em] text-softgray">ADMIN</div>
           <h1 className="mt-2 font-serif text-4xl text-charcoal">Reservations</h1>
-          <p className="mt-2 text-sm text-softgray">
-            Latest requests from the website form.
-          </p>
+          <p className="mt-2 text-sm text-softgray">Latest requests from the website form.</p>
         </div>
 
         <form action="/api/admin/logout" method="post">
@@ -36,9 +34,7 @@ export default async function AdminPage() {
 
       <div className="mt-8 border border-charcoal/10 bg-cream shadow-sm">
         {error ? (
-          <div className="p-5 text-sm text-red-700">
-            Failed to load: {error.message}
-          </div>
+          <div className="p-5 text-sm text-red-700">Failed to load: {error.message}</div>
         ) : (
           <AdminReservationsTable initialRows={rows} />
         )}

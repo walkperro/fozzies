@@ -458,7 +458,7 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
                         if (!pd && !pt) return;
 
                         setNotifyMessage((m) => {
-                          const base = (m || "").replace(/\n\nProposed alternative:[\s\S]*$/, "");
+                          const base = (m || "").replace(/\n\nProposed alternative:.*$/s, "");
                           return base + `\n\nProposed alternative: ${pd || notifyTarget.date} ${pt || notifyTarget.time}`;
                         });
                       }}
