@@ -34,77 +34,7 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
   const [filter, setFilter] = useState<(typeof VIEWS)[number]>("active");
   const [busy, setBusy] = useState<string | null>(null);
 
-  const [notifyOpen, setNotifyOpen] = useState(false);
-  const [notifyRow, setNotifyRow] = useState<Row | null>(null);
-  const [notifyKind, setNotifyKind] = useState<"confirmed" | "declined" | "reschedule">("confirmed");
-  const [notifyMsg, setNotifyMsg] = useState("");
-  const [notifySending, setNotifySending] = useState(false);
-
-  function openNotify(r: Row) {
-    setNotifyRow(r);
-    setNotifyKind("confirmed");
-    setNotifyMsg(
-`Hi ${r.name},
-
-Your reservation request looks great — we’re confirming ${r.date} at ${r.time} for ${r.party_size}.
-
-If anything changes, just reply here and we’ll take care of it.
-
-— Fozzie’s`
-    );
-    setNotifyOpen(true);
-  }
-
-  function templateFor(kind: "confirmed" | "declined" | "reschedule", r: Row) {
-    if (kind === "confirmed") {
-      return `Hi ${r.name},
-
-Your reservation is confirmed for ${r.date} at ${r.time} for ${r.party_size}.
-
-We look forward to seeing you.
-
-— Fozzie’s`;
-    }
-    if (kind === "declined") {
-      return `Hi ${r.name},
-
-We couldn’t confirm ${r.date} at ${r.time} for ${r.party_size}.
-
-Reply with a couple alternate times that work for you and we’ll do our best to accommodate.
-
-— Fozzie’s`;
-    }
-    return `Hi ${r.name},
-
-Can we shift your reservation to a nearby time?
-
-Reply with what works best and we’ll confirm right away.
-
-— Fozzie’s`;
-  }
-
-  async function sendNotify() {
-    if (!notifyRow) return;
-    setNotifySending(true);
-    try {
-      const res = await fetch(`/api/admin/reservations/${notifyRow.id}/notify`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ kind: notifyKind, message: notifyMsg }),
-      });
-      const j = await res.json();
-      if (!res.ok || !j.ok) throw new Error(j.error || "Notify failed");
-      setNotifyOpen(false);
-      setNotifyRow(null);
-      alert("Notification sent.");
-    } catch (e) {
-      console.error(e);
-      alert("Could not send notification email.");
-    } finally {
-      setNotifySending(false);
-    }
-  }
-const filtered = useMemo(() => {
+  const filtered = useMemo(() => {
     const base = rows.filter((r) => !r.deleted_at); // never show soft-deleted in UI
     if (filter === "all") return base;
     if (filter === "active") return base.filter((r) => !r.archived_at);
@@ -221,13 +151,6 @@ const filtered = useMemo(() => {
                 </td>
                 <td className="py-3 whitespace-nowrap">
                   <div className="flex flex-wrap gap-2">
-                    <button
-                      disabled={busy === r.id}
-                      onClick={() => openNotify(r)}
-                      className="rounded-full border border-charcoal/15 px-3 py-1.5 text-xs text-charcoal hover:bg-ivory disabled:opacity-60"
-                    >
-                      notify
-                    </button>
                     {STATUSES.map((s) => (
                       <button
                         key={s}
@@ -269,75 +192,6 @@ const filtered = useMemo(() => {
           </tbody>
         </table>
       </div>
-
-      {notifyOpen && notifyRow && (
-        <div className="fixed inset-0 z-[200]">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => !notifySending && (setNotifyOpen(false), setNotifyRow(null))}
-          />
-          <div className="absolute left-1/2 top-1/2 w-[92vw] max-w-xl -translate-x-1/2 -translate-y-1/2 border border-charcoal/15 bg-cream shadow-xl">
-            <div className="p-5 sm:p-6">
-              <div className="text-[11px] tracking-[0.18em] text-softgray">NOTIFY GUEST</div>
-              <div className="mt-2 font-serif text-2xl text-charcoal">
-                {notifyRow.name} • {notifyRow.date} {notifyRow.time} • party {notifyRow.party_size}
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                {(["confirmed","declined","reschedule"] as const).map((k) => (
-                  <button
-                    key={k}
-                    type="button"
-                    disabled={notifySending}
-                    onClick={() => {
-                      setNotifyKind(k);
-                      setNotifyMsg(templateFor(k, notifyRow));
-                    }}
-                    className={[
-                      "rounded-full px-3 py-1.5 text-xs border transition",
-                      notifyKind === k
-                        ? "border-gold bg-gold/20 text-charcoal"
-                        : "border-charcoal/15 bg-ivory text-softgray hover:bg-ivory/70",
-                    ].join(" ")}
-                  >
-                    {k.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-
-              <div className="mt-4">
-                <textarea
-                  value={notifyMsg}
-                  onChange={(e) => setNotifyMsg(e.target.value)}
-                  rows={10}
-                  className="w-full border border-charcoal/15 bg-ivory/60 p-3 text-sm text-charcoal outline-none focus:border-gold"
-                />
-              </div>
-
-              <div className="mt-4 flex items-center justify-between">
-                <button
-                  type="button"
-                  disabled={notifySending}
-                  onClick={() => (setNotifyOpen(false), setNotifyRow(null))}
-                  className="rounded-full border border-charcoal/15 px-4 py-2 text-sm text-softgray hover:bg-ivory disabled:opacity-60"
-                >
-                  Close
-                </button>
-
-                <button
-                  type="button"
-                  disabled={notifySending || !notifyMsg.trim().length}
-                  onClick={sendNotify}
-                  className="rounded-full bg-gold px-5 py-2 text-sm font-semibold text-charcoal hover:opacity-90 disabled:opacity-60"
-                >
-                  {notifySending ? "Sending…" : "Send Email"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-</div>
-    );
+    </div>
+  );
 }
