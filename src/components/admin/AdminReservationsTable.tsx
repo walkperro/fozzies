@@ -34,6 +34,7 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
   const [rows, setRows] = useState<Row[]>(initialRows);
   const [filter, setFilter] = useState<(typeof VIEWS)[number]>("active");
   const [timeView, setTimeView] = useState<(typeof TIME_VIEWS)[number]>("upcoming");
+const [q, setQ] = useState<string>("");
 const [busy, setBusy] = useState<string | null>(null);
 
   const [notifyOpen, setNotifyOpen] = useState(false);
@@ -117,7 +118,26 @@ const filtered = useMemo(() => {
       else out = out.filter((r) => (r.status || "new") === filter);
     }
 
-    // Time-based filter (date+time)
+    
+    // Search filter (name/email/phone/notes)
+    const qq = q.trim().toLowerCase();
+    if (qq) {
+      out = out.filter((r) => {
+        const hay = [
+          r.name,
+          r.email,
+          r.phone || "",
+          r.notes || "",
+          r.date,
+          r.time,
+        ]
+          .join(" ")
+          .toLowerCase();
+        return hay.includes(qq);
+      });
+    }
+
+// Time-based filter (date+time)
     const now = new Date();
 
     function toDT(r: Row) {
@@ -150,10 +170,50 @@ const filtered = useMemo(() => {
     });
 
     return out;
-  }, [rows, filter, timeView]);async function patchRow(id: string, payload: any) {
+  }, [rows, filter, timeView, q]);async function patchRow(id: string, payload: any) {
     setBusy(id);
     try {
-      const res = await fetch(`/api/admin/reservations/${id}`, {
+      const res = await fetch(`/api/admin/reservations/${id}
+
+  async function notifyGuest(id: string, kind: "confirmed" | "declined" | "reschedule", message?: string) {
+    const res = await fetch(`/api/admin/reservations/${id}/notify`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ kind, message }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok || !j.ok) throw new Error(j.error || "Notify failed");
+    return true;
+  }
+
+  async function confirmAndNotify(r: Row) {
+    setBusy(r.id);
+    try {
+      // 1) set status confirmed
+      const ok = await patchRow(r.id, { status: "confirmed" });
+      if (!ok) return;
+
+      // 2) send email (template)
+      const defaultMsg =
+        `Your reservation is confirmed for ${r.time} on ${r.date}. ` +
+        `If you need to adjust the time, reply to this email and we’ll do our best to accommodate.`;
+
+      // Optional prompt so chef can tweak message quickly
+      const msg = prompt("Confirmation email message (edit if needed):", defaultMsg) ?? defaultMsg;
+
+      await notifyGuest(r.id, "confirmed", msg);
+
+      // Update UI row
+      setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, status: "confirmed" } : x)));
+      alert("Confirmed + emailed guest ✅");
+    } catch (e) {
+      console.error(e);
+      alert("Confirm+email failed.");
+    } finally {
+      setBusy(null);
+    }
+  }
+`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),
@@ -229,6 +289,22 @@ const filtered = useMemo(() => {
             </button>
           ))}
         </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2 w-full">
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search name, email, phone, notes…"
+            className="w-full sm:w-[360px] rounded-xl border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal placeholder:text-softgray focus:outline-none focus:ring-2 focus:ring-gold/30"
+          />
+          <button
+            type="button"
+            onClick={() => setQ("")}
+            className="rounded-full border border-charcoal/15 px-3 py-2 text-xs text-softgray hover:bg-ivory/70"
+          >
+            Clear
+          </button>
+        </div>
+
 
         <div className="ml-auto text-xs text-softgray">Showing {filtered.length} of {rows.filter(r=>!r.deleted_at).length}</div>
       </div>
@@ -294,6 +370,16 @@ const filtered = useMemo(() => {
                         {s}
                       </button>
                     ))}
+                    <button
+                      disabled={busy === r.id}
+                      onClick={() => confirmAndNotify(r)}
+                      className="rounded-full border border-gold bg-gold/10 px-3 py-1.5 text-xs text-charcoal hover:bg-gold/20 disabled:opacity-60"
+                      title="Set confirmed and email guest"
+                    >
+                      confirm + email
+                    </button>
+
+
 
                     <button
                       disabled={busy === r.id}
