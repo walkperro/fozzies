@@ -41,26 +41,6 @@ function toDT(r: Row) {
   return dt;
 }
 
-function prettyDate(d: string) {
-  const v = (d || "").trim();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return d;
-  // Use noon to avoid timezone date shifting
-  const dt = new Date(`${v}T12:00:00`);
-  return dt.toLocaleDateString(undefined, { month: "2-digit", day: "2-digit", year: "numeric" });
-}
-
-function prettyTime(t: string) {
-  const v = (t || "").trim();
-  const m = v.match(/^(\d{2}):(\d{2})$/);
-  if (!m) return t;
-  let hh = Number(m[1]);
-  const mm = m[2];
-  const ampm = hh >= 12 ? "PM" : "AM";
-  hh = hh % 12;
-  if (hh === 0) hh = 12;
-  return `${hh}:${mm} ${ampm}`;
-}
-
 export default function AdminReservationsTable({ initialRows }: { initialRows: Row[] }) {
   const [rows, setRows] = useState<Row[]>(initialRows);
 
@@ -161,10 +141,10 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
   }
 
   function defaultMessageFor(k: "confirmed" | "declined" | "reschedule", r: Row) {
-    if (k === "confirmed") return `We look forward to seeing you at ${prettyTime(r.time)} on ${prettyDate(r.date)}.`;
+    if (k === "confirmed") return `We look forward to seeing you at ${r.time} on ${r.date}.`;
     if (k === "declined") {
       return (
-        `We couldn’t confirm ${prettyTime(r.time)} on ${prettyDate(r.date)}. ` +
+        `We couldn’t confirm ${r.time} on ${r.date}. ` +
         `Reply with another preferred time (or day) and we’ll do our best to accommodate you.`
       );
     }
@@ -220,7 +200,7 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
     if (kind === "reschedule") {
       const pd = (proposeDate || "").trim();
       const pt = (proposeTime || "").trim();
-      if (pd || pt) finalMsg += `\n\nProposed alternative: ${prettyDate(pd || target.date)} ${prettyTime(pt || target.time)}`;
+      if (pd || pt) finalMsg += `\n\nProposed alternative: ${pd || target.date} ${pt || target.time}`;
     }
 
     const ok = await notifyGuest(target.id, kind, finalMsg);
@@ -350,7 +330,7 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
                 </td>
 
                 <td className="py-3 pr-3 whitespace-nowrap">
-                  {prettyDate(r.date)} {prettyTime(r.time)} • party {r.party_size}
+                  {r.date} {r.time} • party {r.party_size}
                 </td>
 
                 <td className="py-3 pr-3 min-w-[220px]">
@@ -418,7 +398,7 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
                 <div>
                   <div className="text-[11px] tracking-[0.18em] text-softgray">ACTIONS</div>
                   <div className="mt-2 font-serif text-2xl text-charcoal">
-                    {target.name} • {prettyDate(target.date)} {prettyTime(target.time)}
+                    {target.name} • {target.date} {target.time}
                   </div>
                   <div className="mt-1 text-xs text-softgray">
                     Party {target.party_size} • {target.email}
@@ -510,7 +490,7 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
                         if (!pd && !pt) return;
                         setMessage((m) => {
                           const base = (m || "").replace(/\n\nProposed alternative:[\s\S]*$/, "");
-                          return base + `\n\nProposed alternative: ${prettyDate(pd || target.date)} ${prettyTime(pt || target.time)}`;
+                          return base + `\n\nProposed alternative: ${pd || target.date} ${pt || target.time}`;
                         });
                       }}
                       className="rounded-full border border-gold px-3 py-1.5 text-xs text-charcoal hover:bg-gold/15"
