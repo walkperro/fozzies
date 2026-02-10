@@ -55,7 +55,6 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
   const [modalClosing, setModalClosing] = useState(false);
   const [target, setTarget] = useState<Row | null>(null);
 
-  // Email kind
   const [kind, setKind] = useState<"confirmed" | "declined" | "reschedule">("confirmed");
   const [message, setMessage] = useState("");
 
@@ -124,11 +123,15 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
     if (!ok) return;
 
     setRows((prev) =>
-      prev.map((x) => (x.id === r.id ? { ...x, archived_at: next ? new Date().toISOString() : null } : x))
+      prev.map((x) =>
+        x.id === r.id ? { ...x, archived_at: next ? new Date().toISOString() : null } : x
+      )
     );
 
     // keep modal target in sync
-    setTarget((t) => (t && t.id === r.id ? { ...t, archived_at: next ? new Date().toISOString() : null } : t));
+    setTarget((t) =>
+      t && t.id === r.id ? { ...t, archived_at: next ? new Date().toISOString() : null } : t
+    );
   }
 
   async function softDelete(r: Row) {
@@ -136,18 +139,20 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
     const ok = await patchRow(r.id, { softDelete: true });
     if (!ok) return;
 
-    setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, deleted_at: new Date().toISOString() } : x)));
+    setRows((prev) =>
+      prev.map((x) => (x.id === r.id ? { ...x, deleted_at: new Date().toISOString() } : x))
+    );
+
     closeModal(true);
   }
 
   function defaultMessageFor(k: "confirmed" | "declined" | "reschedule", r: Row) {
     if (k === "confirmed") return `We look forward to seeing you at ${r.time} on ${r.date}.`;
-    if (k === "declined") {
+    if (k === "declined")
       return (
         `We couldn’t confirm ${r.time} on ${r.date}. ` +
         `Reply with another preferred time (or day) and we’ll do our best to accommodate you.`
       );
-    }
     return `We can accommodate you, but we may need to adjust the time. Reply with what works best and we’ll confirm.`;
   }
 
@@ -174,19 +179,18 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
       setModalOpen(false);
       setTarget(null);
       setModalClosing(false);
-    }, 180);
+    }, 160);
   }
 
   async function sendModal() {
     if (!target) return;
-
     const msg = (message || "").trim();
     if (!msg) {
       alert("Please enter a message.");
       return;
     }
 
-    // confirmed/declined also updates status
+    // if confirmed/declined we also set status automatically
     if (kind === "confirmed" || kind === "declined") {
       const nextStatus = kind;
       const ok = await patchRow(target.id, { status: nextStatus });
@@ -200,7 +204,9 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
     if (kind === "reschedule") {
       const pd = (proposeDate || "").trim();
       const pt = (proposeTime || "").trim();
-      if (pd || pt) finalMsg += `\n\nProposed alternative: ${pd || target.date} ${pt || target.time}`;
+      if (pd || pt) {
+        finalMsg += `\n\nProposed alternative: ${pd || target.date} ${pt || target.time}`;
+      }
     }
 
     const ok = await notifyGuest(target.id, kind, finalMsg);
@@ -248,9 +254,6 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
     return out;
   }, [rows, filter, q, timeView]);
 
-  const kindLabel = (k: "confirmed" | "declined" | "reschedule") =>
-    k === "confirmed" ? "CONFIRM" : k === "declined" ? "DECLINE" : "RESCHEDULE";
-
   return (
     <div className="p-4 sm:p-6">
       {/* Top bar */}
@@ -263,7 +266,9 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
               onClick={() => setFilter(k)}
               className={[
                 "rounded-full px-3 py-1.5 text-xs border transition",
-                filter === k ? "border-gold bg-gold/20 text-charcoal" : "border-charcoal/15 bg-ivory text-softgray hover:bg-ivory/70",
+                filter === k
+                  ? "border-gold bg-gold/20 text-charcoal"
+                  : "border-charcoal/15 bg-ivory text-softgray hover:bg-ivory/70",
               ].join(" ")}
             >
               {k.toUpperCase()}
@@ -272,11 +277,11 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* TIME selector */}
+          {/* TIME selector (distinguishable) */}
           <select
             value={timeView}
             onChange={(e) => setTimeView(e.target.value as any)}
-            className="h-9 rounded-full border border-charcoal/15 bg-cream px-3 text-xs font-medium text-charcoal outline-none"
+            className="h-9 rounded-full border border-charcoal/15 bg-cream px-3 text-xs text-charcoal outline-none"
           >
             <option value="upcoming">UPCOMING</option>
             <option value="past">PAST</option>
@@ -318,15 +323,21 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
                 <td className="py-3 pr-3">
                   <div className="font-medium">{r.name}</div>
                   <div className="text-softgray">
-                    <a className="underline" href={`mailto:${r.email}`}>{r.email}</a>
+                    <a className="underline" href={`mailto:${r.email}`}>
+                      {r.email}
+                    </a>
                     {r.phone ? (
                       <>
                         {" • "}
-                        <a className="underline" href={`tel:${r.phone}`}>{r.phone}</a>
+                        <a className="underline" href={`tel:${r.phone}`}>
+                          {r.phone}
+                        </a>
                       </>
                     ) : null}
                   </div>
-                  {r.archived_at ? <div className="mt-1 text-[11px] text-softgray">Archived</div> : null}
+                  {r.archived_at ? (
+                    <div className="mt-1 text-[11px] text-softgray">Archived</div>
+                  ) : null}
                 </td>
 
                 <td className="py-3 pr-3 whitespace-nowrap">
@@ -337,7 +348,7 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
                   <div className="text-softgray">{r.notes || "—"}</div>
                 </td>
 
-                {/* Status selector */}
+                {/* Status selector (moved out of actions) */}
                 <td className="py-3 pr-3 whitespace-nowrap">
                   <select
                     value={(r.status || "new") as any}
@@ -346,7 +357,9 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
                     className="h-9 rounded-full border border-charcoal/15 bg-cream px-3 text-xs text-charcoal outline-none disabled:opacity-60"
                   >
                     {STATUSES.map((s) => (
-                      <option key={s} value={s}>{s.toUpperCase()}</option>
+                      <option key={s} value={s}>
+                        {s.toUpperCase()}
+                      </option>
                     ))}
                   </select>
                 </td>
@@ -379,8 +392,7 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
         <div
           className={[
             "fixed inset-0 z-[200] flex items-center justify-center p-4 transition-opacity",
-            // light overlay + blur (not dark)
-            "backdrop-blur-[12px] bg-gradient-to-b from-white/55 via-white/40 to-white/55",
+            "bg-charcoal/75 backdrop-blur-[6px] bg-gradient-to-b from-charcoal/80 via-charcoal/70 to-charcoal/85",
             modalClosing ? "opacity-0" : "opacity-100",
           ].join(" ")}
           onMouseDown={(e) => {
@@ -426,10 +438,12 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
                     }}
                     className={[
                       "rounded-full px-3 py-1.5 text-xs border transition",
-                      kind === k ? "border-gold bg-gold/20 text-charcoal" : "border-charcoal/15 bg-ivory text-softgray hover:bg-ivory/70",
+                      kind === k
+                        ? "border-gold bg-gold/20 text-charcoal"
+                        : "border-charcoal/15 bg-ivory text-softgray hover:bg-ivory/70",
                     ].join(" ")}
                   >
-                    {kindLabel(k)}
+                    {k.toUpperCase()}
                   </button>
                 ))}
               </div>
@@ -531,6 +545,14 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
                     Delete
                   </button>
                 ) : null}
+
+                <button
+                  type="button"
+                  onClick={() => closeModal()}
+                  className="rounded-full border border-charcoal/15 px-4 py-2 text-sm text-softgray hover:bg-ivory"
+                >
+                  Cancel
+                </button>
               </div>
 
               <div className="mt-3 text-xs text-softgray">
