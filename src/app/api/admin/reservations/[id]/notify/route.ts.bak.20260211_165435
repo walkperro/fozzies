@@ -11,13 +11,11 @@ function env(name: string) {
   return v;
 }
 
-async function isAuthed(req: NextRequest) {
+function isAuthed(req: NextRequest) {
   const expected = process.env.ADMIN_TOKEN;
   if (!expected) return false;
 
-  // Next 16 typing in your project: cookies() -> Promise<ReadonlyRequestCookies>
-  const jar = await cookies();
-  const cookieOk = jar.get("fz_admin")?.value === "1";
+  const cookieOk = cookies().get("fz_admin")?.value === "1";
   const headerOk = req.headers.get("x-admin-token") === expected;
 
   return cookieOk || headerOk;
@@ -34,12 +32,12 @@ function escHtml(s: string) {
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
-    if (!(await isAuthed(req))) {
+    if (!isAuthed(req)) {
       return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = await ctx.params;
-    const body = (await req.json().catch(() => ({} as any))) as any;
+    const body = await req.json().catch(() => ({} as any));
 
     const kind = (body.kind || "confirmed") as "confirmed" | "declined" | "reschedule";
     const message = String(body.message || "").trim();
