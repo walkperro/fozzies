@@ -9,8 +9,7 @@ const NAV = [
   { label: "Menu", href: "/menu" },
   { label: "About", href: "/about" },
   { label: "FAQ", href: "/faq" },
-  { label: "Private Dining", href: "/events" },
-  { label: "Contact", href: "/contact" },
+{ label: "Contact", href: "/contact" },
 ];
 
 export default function Header() {
