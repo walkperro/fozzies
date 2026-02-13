@@ -66,9 +66,12 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* Signature */}
-      <div className="mt-20 flex justify-center">
-        <div className="relative w-48 h-20 opacity-80">
+      {/* Elevated Signature Section */}
+      <div className="mt-24 flex flex-col items-center">
+
+        <div className="h-px w-24 bg-warmgold/70 mb-8"></div>
+
+        <div className="relative w-52 h-20 opacity-60">
           <Image
             src="/brand/fozzie_sig.png"
             alt="Chef Jason Signature"
@@ -76,6 +79,11 @@ export default function AboutPage() {
             className="object-contain"
           />
         </div>
+
+        <p className="mt-4 font-serif text-sm text-charcoal/70 tracking-wide">
+          — Chef Jason Head
+        </p>
+
       </div>
 
     </main>
