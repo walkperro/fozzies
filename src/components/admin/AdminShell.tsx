@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/admin/announcements", label: "Announcements" },
   { href: "/admin/banner", label: "Banner" },
   { href: "/admin/clients", label: "Clients" },
+  { href: "/admin/applicants", label: "Applicants" },
   { href: "/admin/menu", label: "Menu Editor" },
   { href: "/admin/menu-pdf", label: "Menu PDF" },
   { href: "/admin/activity", label: "Activity" },

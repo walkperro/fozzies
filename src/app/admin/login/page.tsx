@@ -51,7 +51,7 @@ export default function AdminLoginPage() {
                 type="button"
                 onClick={() => setShowToken((v) => !v)}
                 aria-label={showToken ? "Hide token" : "Show token"}
-                className="absolute right-1.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-charcoal/10 bg-cream text-sm text-softgray transition hover:bg-ivory"
+                className="absolute right-1.5 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center text-sm text-softgray opacity-70 transition hover:opacity-100"
               >
                 {showToken ? (
                   <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4">

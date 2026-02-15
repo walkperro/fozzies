@@ -16,6 +16,13 @@ export default function MobileDrawer({
   items: NavItem[];
 }) {
   const pathname = usePathname();
+  const navItems = [...items];
+  if (!navItems.some((it) => it.href === "/join-the-team")) {
+    navItems.push({ href: "/join-the-team", label: "Join The Team" });
+  }
+  if (!navItems.some((it) => it.href === "/privacy")) {
+    navItems.push({ href: "/privacy", label: "Privacy" });
+  }
 
   // ESC to close
   useEffect(() => {
@@ -64,7 +71,7 @@ export default function MobileDrawer({
 
         <nav className="px-5 py-5">
           <ul className="space-y-4">
-            {items.map((it) => {
+            {navItems.map((it) => {
               const active = pathname === it.href;
               return (
                 <li key={it.href}>
