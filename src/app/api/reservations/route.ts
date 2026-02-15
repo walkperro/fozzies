@@ -19,6 +19,21 @@ function bad(msg: string, status = 400) {
   return NextResponse.json({ ok: false, error: msg }, { status });
 }
 
+function envOrNull(name: string) {
+  const v = process.env[name];
+  return typeof v === "string" && v.trim().length > 0 ? v.trim() : null;
+}
+
+function normalizeEmailHeader(v: string | null) {
+  if (!v) return null;
+  return v.trim().replace(/^['"]+|['"]+$/g, "");
+}
+
+function isValidFromField(v: string) {
+  const email = "[^\\s@<>]+@[^\\s@<>]+\\.[^\\s@<>]+";
+  return new RegExp(`^${email}$`).test(v) || new RegExp(`^[^<>\\r\\n]+<\\s*${email}\\s*>$`).test(v);
+}
+
 function escHtml(s: string) {
   return s
     .replaceAll("&", "&amp;")
@@ -29,6 +44,7 @@ function escHtml(s: string) {
 }
 
 export async function POST(req: Request) {
+  const requestId = crypto.randomUUID();
   try {
     const body = (await req.json()) as Partial<ReservePayload>;
 
@@ -53,11 +69,16 @@ export async function POST(req: Request) {
       return bad("Party size must be 1–20");
     }
 
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const SUPABASE_URL = envOrNull("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = envOrNull("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      return bad("Server not configured (Supabase env vars missing)", 500);
+      console.error("[reservations] Missing Supabase configuration", {
+        requestId,
+        hasSupabaseUrl: !!SUPABASE_URL,
+        hasServiceRoleKey: !!SUPABASE_SERVICE_ROLE_KEY,
+      });
+      return bad("Reservations are temporarily unavailable. Please call the restaurant.", 500);
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -81,13 +102,32 @@ export async function POST(req: Request) {
       .select("id")
       .single();
 
-    if (error) return bad(`Supabase insert failed: ${error.message}`, 500);
+    if (error) {
+      console.error("[reservations] Supabase insert failed", {
+        requestId,
+        error: error.message,
+      });
+      return bad("Could not submit reservation right now. Please try again shortly.", 500);
+    }
 
-    const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    if (!RESEND_API_KEY) return bad("Server not configured (RESEND_API_KEY missing)", 500);
+    const RESEND_API_KEY = envOrNull("RESEND_API_KEY");
+    const RESEND_FROM = normalizeEmailHeader(envOrNull("RESEND_FROM"));
+    const RESERVE_TO_EMAIL = envOrNull("RESERVE_TO_EMAIL");
 
-    const RESEND_FROM = process.env.RESEND_FROM || "Fozzie's <onboarding@resend.dev>";
-    const RESERVE_TO_EMAIL = process.env.RESERVE_TO_EMAIL || "fozziesdining@gmail.com";
+    if (!RESEND_API_KEY || !RESEND_FROM || !RESERVE_TO_EMAIL || !isValidFromField(RESEND_FROM)) {
+      console.error("[reservations] Missing email configuration", {
+        requestId,
+        reservationId: data?.id || null,
+        hasResendApiKey: !!RESEND_API_KEY,
+        hasResendFrom: !!RESEND_FROM,
+        hasReserveToEmail: !!RESERVE_TO_EMAIL,
+        isResendFromValid: !!RESEND_FROM && isValidFromField(RESEND_FROM),
+      });
+      return bad(
+        "Reservation saved, but email setup is invalid. Please call to confirm your table.",
+        500
+      );
+    }
 
     const resend = new Resend(RESEND_API_KEY);
 
@@ -111,7 +151,7 @@ Reservation ID: ${data?.id || "-"}`;
 
     const safeNotes = notes && notes.trim().length ? escHtml(notes) : "—";
 
-    await resend.emails.send({
+    const sendResult = await resend.emails.send({
       from: RESEND_FROM,
       to: RESERVE_TO_EMAIL,
       subject,
@@ -170,10 +210,32 @@ Reservation ID: ${data?.id || "-"}`;
       `,
     });
 
+    if (sendResult.error) {
+      console.error("[reservations] Resend delivery failed", {
+        requestId,
+        reservationId: data?.id || null,
+        error: sendResult.error,
+      });
+      return bad(
+        "Reservation saved, but we could not notify the team by email. Please call to confirm.",
+        502
+      );
+    }
+
+    console.info("[reservations] Email delivered", {
+      requestId,
+      reservationId: data?.id || null,
+      providerId: sendResult.data?.id || null,
+    });
+
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
+  } catch (e: unknown) {
+    console.error("[reservations] Unhandled error", {
+      requestId,
+      error: e instanceof Error ? e.message : String(e),
+    });
     return NextResponse.json(
-      { ok: false, error: e?.message || "Unknown error" },
+      { ok: false, error: "Could not submit reservation right now. Please try again shortly." },
       { status: 500 }
     );
   }

@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import AdminReservationsTable from "@/components/admin/AdminReservationsTable";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const supabase = supabaseAdmin();

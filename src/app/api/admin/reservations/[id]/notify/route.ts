@@ -11,6 +11,21 @@ function env(name: string) {
   return v;
 }
 
+function envOrNull(name: string) {
+  const v = process.env[name];
+  return typeof v === "string" && v.trim().length > 0 ? v.trim() : null;
+}
+
+function normalizeEmailHeader(v: string | null) {
+  if (!v) return null;
+  return v.trim().replace(/^['"]+|['"]+$/g, "");
+}
+
+function isValidFromField(v: string) {
+  const email = "[^\\s@<>]+@[^\\s@<>]+\\.[^\\s@<>]+";
+  return new RegExp(`^${email}$`).test(v) || new RegExp(`^[^<>\\r\\n]+<\\s*${email}\\s*>$`).test(v);
+}
+
 async function isAuthed(req: NextRequest) {
   const expected = process.env.ADMIN_TOKEN;
   if (!expected) return false;
@@ -33,15 +48,16 @@ function escHtml(s: string) {
 }
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const requestId = crypto.randomUUID();
   try {
     if (!(await isAuthed(req))) {
       return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = await ctx.params;
-    const body = (await req.json().catch(() => ({} as any))) as any;
+    const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
 
-    const kind = (body.kind || "confirmed") as "confirmed" | "declined" | "reschedule";
+    const kind = String(body.kind || "confirmed") as "confirmed" | "declined" | "reschedule";
     const message = String(body.message || "").trim();
 
     const supabase = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
@@ -62,8 +78,29 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
       return NextResponse.json({ ok: false, error: "Reservation has no email" }, { status: 400 });
     }
 
-    const resend = new Resend(env("RESEND_API_KEY"));
-    const from = process.env.RESEND_FROM || "Fozzie's <onboarding@resend.dev>";
+    const resendApiKey = envOrNull("RESEND_API_KEY");
+    const from = normalizeEmailHeader(envOrNull("RESEND_FROM"));
+    const replyTo = envOrNull("RESERVE_TO_EMAIL");
+
+    if (!resendApiKey || !from || !replyTo || !isValidFromField(from)) {
+      console.error("[admin.notify] Missing email configuration", {
+        requestId,
+        reservationId: id,
+        hasResendApiKey: !!resendApiKey,
+        hasResendFrom: !!from,
+        hasReserveToEmail: !!replyTo,
+        isResendFromValid: !!from && isValidFromField(from),
+      });
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Email is misconfigured on the server. RESEND_FROM must be a valid sender format.",
+        },
+        { status: 500 }
+      );
+    }
+
+    const resend = new Resend(resendApiKey);
 
     let subject = "";
     let headline = "";
@@ -84,10 +121,10 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
       bodyText = message || "Reply with what works best and we’ll confirm.";
     }
 
-    await resend.emails.send({
+    const sendResult = await resend.emails.send({
       from,
       to: r.email,
-      replyTo: "fozziesdining@gmail.com",
+      replyTo,
       subject,
       text: `${headline}\n\n${bodyText}\n\nRequested: ${r.date} ${r.time} (Party of ${r.party_size})`,
       html: `
@@ -123,8 +160,35 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
       `,
     });
 
+    if (sendResult.error) {
+      console.error("[admin.notify] Resend delivery failed", {
+        requestId,
+        reservationId: id,
+        kind,
+        error: sendResult.error,
+      });
+      return NextResponse.json(
+        { ok: false, error: "Email could not be delivered. Please try again in a minute." },
+        { status: 502 }
+      );
+    }
+
+    console.info("[admin.notify] Email delivered", {
+      requestId,
+      reservationId: id,
+      kind,
+      providerId: sendResult.data?.id || null,
+    });
+
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || "Server error" }, { status: 500 });
+  } catch (e: unknown) {
+    console.error("[admin.notify] Unhandled error", {
+      requestId,
+      error: e instanceof Error ? e.message : String(e),
+    });
+    return NextResponse.json(
+      { ok: false, error: "Email could not be sent right now. Please try again shortly." },
+      { status: 500 }
+    );
   }
 }

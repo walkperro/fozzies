@@ -123,9 +123,9 @@ export default function AdminReservationsTable({ initialRows }: { initialRows: R
       const j = await res.json().catch(() => ({}));
       if (!res.ok || !j.ok) throw new Error(j.error || "Notify failed");
       return true;
-    } catch (e) {
+    } catch (e: unknown) {
       console.error(e);
-      alert("Could not send email.");
+      alert(e instanceof Error ? e.message : "Could not send email.");
       return false;
     } finally {
       setBusy(null);
