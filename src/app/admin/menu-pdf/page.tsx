@@ -1,5 +1,6 @@
 import MenuPdfUploadForm from "@/components/admin/MenuPdfUploadForm";
 import { getSettingValue } from "@/lib/settings";
+import { resolveMenuPdfPath } from "@/lib/menuSettings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,7 +12,7 @@ type MenuPdfSetting = {
 
 export default async function AdminMenuPdfPage() {
   const value = await getSettingValue<MenuPdfSetting>("menu_pdf");
-  const currentPath = value?.path || "/fozzies-menu.pdf";
+  const currentPath = resolveMenuPdfPath(value);
 
   return (
     <main>
@@ -40,9 +41,7 @@ export default async function AdminMenuPdfPage() {
 
         <MenuPdfUploadForm />
 
-        <div className="mt-4 text-xs text-softgray">
-          TODO: ensure Supabase Storage bucket `public-assets` exists and is public for production deploys.
-        </div>
+        <div className="mt-4 text-xs text-softgray">Storage bucket required: create `public-assets` in Supabase Storage and set it public.</div>
       </section>
     </main>
   );

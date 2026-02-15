@@ -1,25 +1,13 @@
 import { revalidatePath } from "next/cache";
 import MenuEditor from "@/components/admin/MenuEditor";
-import { MENU_META, MENU_SECTIONS, type MenuMeta, type MenuSection } from "@/app/menu/menuData";
 import { getSettingValue, upsertSettingValue } from "@/lib/settings";
+import { getDefaultMenuPayload, parseMenuPayload, resolveMenuPdfPath, type MenuPayload } from "@/lib/menuSettings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type StoredMenuPayload = {
-  meta: MenuMeta;
-  sections: MenuSection[];
-};
-
-function isMenuPayload(value: unknown): value is StoredMenuPayload {
-  if (!value || typeof value !== "object") return false;
-  const v = value as Record<string, unknown>;
-  if (!v.meta || !v.sections) return false;
-  return Array.isArray(v.sections);
-}
-
 export default async function AdminMenuPage() {
-  async function saveAction(payload: StoredMenuPayload) {
+  async function saveAction(payload: MenuPayload) {
     "use server";
     try {
       const { error } = await upsertSettingValue("menu_html", payload);
@@ -32,18 +20,26 @@ export default async function AdminMenuPage() {
     }
   }
 
-  let initialValue: StoredMenuPayload = { meta: MENU_META, sections: MENU_SECTIONS };
-  const stored = await getSettingValue<unknown>("menu_html");
+  const defaults = getDefaultMenuPayload();
+  let initialValue: MenuPayload = defaults;
+  const [storedMenu, storedPdf] = await Promise.all([getSettingValue<unknown>("menu_html"), getSettingValue<unknown>("menu_pdf")]);
 
-  if (isMenuPayload(stored)) {
-    initialValue = stored;
-  } else if (!stored) {
+  if (storedMenu) {
+    const parsed = parseMenuPayload(storedMenu);
+    if (parsed) {
+      initialValue = parsed;
+    } else {
+      console.error("Invalid site_settings.menu_html payload in admin. Falling back to static menuData.");
+    }
+  } else {
     try {
       await upsertSettingValue("menu_html", initialValue);
     } catch {
-      // TODO: create fozzies.site_settings via migration before relying on persisted menu content.
+      // Keep editor functional even if DB is not ready.
     }
   }
+
+  const currentPdfPath = resolveMenuPdfPath(storedPdf);
 
   return (
     <main>
@@ -54,7 +50,7 @@ export default async function AdminMenuPage() {
       </div>
 
       <div className="mt-8">
-        <MenuEditor initialValue={initialValue} saveAction={saveAction} />
+        <MenuEditor initialValue={initialValue} currentPdfPath={currentPdfPath} saveAction={saveAction} />
       </div>
     </main>
   );

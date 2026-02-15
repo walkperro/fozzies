@@ -23,6 +23,7 @@ export default function HomePage() {
 
   const [active, setActive] = useState(0);
   const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
+  const [expandedAnnouncementIds, setExpandedAnnouncementIds] = useState<string[]>([]);
 
   useEffect(() => {
     const id = setInterval(() => setActive((i) => (i + 1) % slides.length), 9000);
@@ -121,26 +122,50 @@ export default function HomePage() {
       </section>
 
       {announcements.length > 0 ? (
-        <section className="mt-16 border border-charcoal/10 bg-cream p-6 sm:p-8 shadow-sm">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-3 whitespace-nowrap text-[11px] tracking-[0.18em] sm:text-xs sm:tracking-[0.22em] text-softgray">
-              <span className="h-px w-10 bg-gold/70" />
-              ANNOUNCEMENTS
-              <span className="h-px w-10 bg-gold/70" />
+        <section className="mt-16 max-w-6xl border border-charcoal/10 bg-cream p-6 shadow-sm sm:p-8">
+          <div className="mx-auto w-full">
+            <div className="text-center">
+              <div className="inline-flex items-center gap-3 whitespace-nowrap text-[11px] tracking-[0.18em] sm:text-xs sm:tracking-[0.22em] text-softgray">
+                <span className="h-px w-10 bg-gold/70" />
+                ANNOUNCEMENTS
+                <span className="h-px w-10 bg-gold/70" />
+              </div>
+              <h2 className="mt-4 font-serif text-3xl text-charcoal">Latest Updates</h2>
+              <div className="mx-auto mt-5 h-px w-48 bg-gold/60" />
             </div>
-            <h2 className="mt-4 font-serif text-3xl text-charcoal">Latest Updates</h2>
-            <div className="mx-auto mt-5 h-px w-48 bg-gold/60" />
-          </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {announcements.map((item) => (
-              <article key={item.id} className="border border-charcoal/10 bg-ivory p-4">
-                <h3 className="font-serif text-2xl text-charcoal">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-softgray">
-                  {item.body.length > 180 ? `${item.body.slice(0, 180).trim()}...` : item.body}
-                </p>
-              </article>
-            ))}
+            <div
+              className={`mt-8 grid gap-4 ${
+                announcements.length > 2 ? "lg:grid-cols-3 md:grid-cols-2" : "md:grid-cols-2"
+              }`}
+            >
+              {announcements.map((item) => {
+                const isExpanded = expandedAnnouncementIds.includes(item.id);
+                const shouldTruncate = item.body.length > 180;
+                const previewBody =
+                  !shouldTruncate || isExpanded ? item.body : `${item.body.slice(0, 180).trim()}...`;
+
+                return (
+                  <article key={item.id} className="border border-charcoal/10 bg-ivory p-4">
+                    <h3 className="font-serif text-2xl text-charcoal">{item.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-softgray">{previewBody}</p>
+                    {shouldTruncate ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedAnnouncementIds((prev) =>
+                            prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]
+                          )
+                        }
+                        className="mt-3 text-sm font-medium text-charcoal underline decoration-gold/70 underline-offset-4"
+                      >
+                        {isExpanded ? "Read Less" : "Read More"}
+                      </button>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
           </div>
         </section>
       ) : null}

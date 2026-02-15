@@ -1,5 +1,3 @@
-import { writeFile } from "node:fs/promises";
-import path from "node:path";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { upsertSettingValue } from "@/lib/settings";
@@ -12,54 +10,52 @@ type MenuPdfSetting = {
 };
 
 export async function POST(req: Request) {
-  const formData = await req.formData();
-  const file = formData.get("file");
-
-  if (!(file instanceof File)) {
-    return NextResponse.json({ ok: false, error: "Missing file" }, { status: 400 });
-  }
-  if (file.type !== "application/pdf") {
-    return NextResponse.json({ ok: false, error: "Only PDF files are allowed" }, { status: 400 });
-  }
-
-  const now = new Date().toISOString();
-  const storagePath = "menus/fozzies-menu.pdf";
-
   try {
+    const formData = await req.formData();
+    const file = formData.get("file");
+
+    if (!(file instanceof File)) {
+      return NextResponse.json({ ok: false, error: "Missing file" }, { status: 400 });
+    }
+    if (file.type !== "application/pdf") {
+      return NextResponse.json({ ok: false, error: "Only PDF files are allowed" }, { status: 400 });
+    }
+
+    const now = new Date().toISOString();
+    const storagePath = "menus/fozzies-menu.pdf";
     const supabase = supabaseAdmin();
     const { error: uploadError } = await supabase.storage.from("public-assets").upload(storagePath, file, {
       upsert: true,
       contentType: "application/pdf",
     });
 
-    if (!uploadError) {
-      const { data } = supabase.storage.from("public-assets").getPublicUrl(storagePath);
-      const setting: MenuPdfSetting = { path: data.publicUrl, updatedAt: now };
-      await upsertSettingValue("menu_pdf", setting);
-      return NextResponse.json({ ok: true, path: setting.path, provider: "supabase-storage" });
+    if (uploadError) {
+      if (/bucket/i.test(uploadError.message) && /not found|does not exist/i.test(uploadError.message)) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Supabase Storage bucket `public-assets` is missing. Create it in Supabase Storage and make it public before uploading.",
+          },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({ ok: false, error: `Upload failed: ${uploadError.message}` }, { status: 500 });
     }
-  } catch (err) {
-    console.error("Menu PDF storage upload failed:", err);
-  }
 
-  try {
-    const bytes = await file.arrayBuffer();
-    const outputPath = path.join(process.cwd(), "public", "fozzies-menu.pdf");
-    await writeFile(outputPath, Buffer.from(bytes));
+    const { data } = supabase.storage.from("public-assets").getPublicUrl(storagePath);
+    const setting: MenuPdfSetting = { path: data.publicUrl || storagePath, updatedAt: now };
+    const { error: settingError } = await upsertSettingValue("menu_pdf", setting);
+    if (settingError) {
+      return NextResponse.json({ ok: false, error: `Failed to save setting: ${settingError.message}` }, { status: 500 });
+    }
 
-    const setting: MenuPdfSetting = { path: "/fozzies-menu.pdf", updatedAt: now };
-    await upsertSettingValue("menu_pdf", setting);
-    return NextResponse.json({
-      ok: true,
-      path: setting.path,
-      provider: "local-public-fallback",
-      note: "TODO: local filesystem fallback may not work on serverless platforms like Vercel.",
-    });
+    return NextResponse.json({ ok: true, path: setting.path, provider: "supabase-storage" });
   } catch (err) {
     return NextResponse.json(
       {
         ok: false,
-        error: "Upload failed: configure Supabase Storage bucket public-assets/menus or durable file storage.",
+        error: "Upload failed while writing menu PDF to Supabase Storage.",
         details: err instanceof Error ? err.message : "Unknown error",
       },
       { status: 500 }
