@@ -1,4 +1,15 @@
-export const MENU_META = {
+export type MenuMeta = {
+  title: string;
+  subtitle: string;
+  glutenFreeNote: string;
+  splitFee: string;
+  reservations: string;
+  hours: Array<{ label: string; value: string }>;
+  faq: Array<{ label: string; value: string }>;
+  social: Array<{ label: string; value: string }>;
+};
+
+export const MENU_META: MenuMeta = {
   title: "Fozzie’s",
   subtitle: "Dinner menu — updated seasonally.",
   glutenFreeNote: "gluten-free options available",

@@ -1,44 +1,34 @@
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import AdminReservationsTable from "@/components/admin/AdminReservationsTable";
+import Link from "next/link";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+const CARDS = [
+  { href: "/admin/reservations", title: "Reservations", note: "Manage incoming reservation requests." },
+  { href: "/admin/announcements", title: "Announcements", note: "Create and publish homepage announcements." },
+  { href: "/admin/clients", title: "Clients", note: "Newsletter list and blast composer skeleton." },
+  { href: "/admin/menu", title: "Menu Editor", note: "Edit menu content persisted in site settings." },
+  { href: "/admin/menu-pdf", title: "Menu PDF", note: "Upload/swap the downloadable menu PDF." },
+  { href: "/admin/activity", title: "Activity", note: "Placeholder for analytics and activity feeds." },
+];
 
-export default async function AdminPage() {
-  const supabase = supabaseAdmin();
-
-  const { data, error } = await supabase
-    .schema("fozzies")
-    .from("reservations")
-    .select("id,created_at,name,email,phone,party_size,date,time,notes,status,source, archived_at, deleted_at")
-    .filter("deleted_at", "is", null)
-    .order("created_at", { ascending: false })
-    .limit(250);
-
-  const rows = data ?? [];
-
+export default function AdminDashboardPage() {
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-[11px] tracking-[0.18em] text-softgray">ADMIN</div>
-          <h1 className="mt-2 font-serif text-4xl text-charcoal">Reservations</h1>
-          <p className="mt-2 text-sm text-softgray">Latest requests from the website form.</p>
-        </div>
-
-        <form action="/api/admin/logout" method="post">
-          <button className="rounded-full border border-gold px-4 py-2 text-sm font-medium text-charcoal no-underline transition hover:bg-gold/15">
-            Log out
-          </button>
-        </form>
+    <main>
+      <div>
+        <div className="text-[11px] tracking-[0.18em] text-softgray">ADMIN</div>
+        <h2 className="mt-2 font-serif text-4xl text-charcoal">Admin Dashboard</h2>
+        <p className="mt-2 text-sm text-softgray">Choose a section to manage site operations.</p>
       </div>
 
-      <div className="mt-8 border border-charcoal/10 bg-cream shadow-sm">
-        {error ? (
-          <div className="p-5 text-sm text-red-700">Failed to load: {error.message}</div>
-        ) : (
-          <AdminReservationsTable initialRows={rows} />
-        )}
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {CARDS.map((card) => (
+          <Link
+            key={card.href}
+            href={card.href}
+            className="block border border-charcoal/10 bg-ivory p-5 transition hover:border-gold/70 hover:shadow-sm"
+          >
+            <h3 className="font-serif text-2xl text-charcoal">{card.title}</h3>
+            <p className="mt-2 text-sm text-softgray">{card.note}</p>
+          </Link>
+        ))}
       </div>
     </main>
   );

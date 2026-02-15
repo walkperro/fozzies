@@ -4,6 +4,12 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import ReserveForm from "@/components/ReserveForm";
 
+type AnnouncementItem = {
+  id: string;
+  title: string;
+  body: string;
+};
+
 export default function HomePage() {
   const slides = useMemo(
     () => [
@@ -16,11 +22,30 @@ export default function HomePage() {
   );
 
   const [active, setActive] = useState(0);
+  const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
 
   useEffect(() => {
     const id = setInterval(() => setActive((i) => (i + 1) % slides.length), 9000);
     return () => clearInterval(id);
   }, [slides.length]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadAnnouncements() {
+      try {
+        const res = await fetch("/api/announcements?limit=3", { cache: "no-store" });
+        const json = await res.json();
+        if (!res.ok || !json.ok) return;
+        if (!cancelled) setAnnouncements(Array.isArray(json.items) ? json.items : []);
+      } catch {
+        if (!cancelled) setAnnouncements([]);
+      }
+    }
+    loadAnnouncements();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <main className="mx-auto max-w-6xl px-4 pt-6 pb-14 sm:px-6 sm:pt-8">
@@ -94,6 +119,31 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {announcements.length > 0 ? (
+        <section className="mt-16 border border-charcoal/10 bg-cream p-6 sm:p-8 shadow-sm">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-3 whitespace-nowrap text-[11px] tracking-[0.18em] sm:text-xs sm:tracking-[0.22em] text-softgray">
+              <span className="h-px w-10 bg-gold/70" />
+              ANNOUNCEMENTS
+              <span className="h-px w-10 bg-gold/70" />
+            </div>
+            <h2 className="mt-4 font-serif text-3xl text-charcoal">Latest Updates</h2>
+            <div className="mx-auto mt-5 h-px w-48 bg-gold/60" />
+          </div>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {announcements.map((item) => (
+              <article key={item.id} className="border border-charcoal/10 bg-ivory p-4">
+                <h3 className="font-serif text-2xl text-charcoal">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-softgray">
+                  {item.body.length > 180 ? `${item.body.slice(0, 180).trim()}...` : item.body}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
 
       {/* Chef */}
