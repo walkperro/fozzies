@@ -33,6 +33,47 @@ function sanitizeErrorMessage(value: unknown) {
   return base.replace(/\s+/g, " ").trim().slice(0, 220);
 }
 
+function escHtml(s: string) {
+  return s
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function bodyToHtml(body: string) {
+  return escHtml(body).replaceAll("\n", "<br/>");
+}
+
+function renderBlastHtml(subject: string, body: string) {
+  return `
+<div style="background:#F7F4EF;padding:24px 0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;">
+  <div style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid rgba(30,30,30,0.12);">
+    <div style="padding:22px 22px 10px;">
+      <div style="font-size:12px;letter-spacing:0.18em;color:#8E8E8E;text-transform:uppercase;">
+        Fozzie's Dining
+      </div>
+      <div style="font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.2;color:#1E1E1E;margin-top:8px;">
+        ${escHtml(subject)}
+      </div>
+      <div style="height:1px;background:rgba(200,162,74,0.55);margin:14px 0 0;"></div>
+    </div>
+    <div style="padding:18px 22px 22px;color:#1E1E1E;">
+      <div style="font-size:15px;line-height:1.7;margin-bottom:14px;">
+        ${bodyToHtml(body)}
+      </div>
+      <div style="margin-top:16px;color:#8E8E8E;font-size:12px;line-height:1.6;">
+        Fozzie's Dining<br/>
+        Cookeville, Tennessee<br/>
+        fozziesdining.com
+      </div>
+    </div>
+  </div>
+</div>
+  `;
+}
+
 function configHintFromFailures(failures: Array<{ email: string; errorMessage: string }>) {
   const combined = failures.map((f) => f.errorMessage).join(" ").toLowerCase();
   if (/verify|verified|domain|sender|from address|from email/.test(combined)) {
@@ -67,6 +108,7 @@ export default async function AdminClientsPage() {
 
     const apiKey = process.env.RESEND_API_KEY;
     const from = process.env.RESEND_FROM ?? process.env.FROM_EMAIL;
+    const replyTo = process.env.RESERVE_TO_EMAIL;
     if (!apiKey || !from) {
       return {
         ok: false,
@@ -85,8 +127,10 @@ export default async function AdminClientsPage() {
         const { error: sendError } = await resend.emails.send({
           from,
           to: email,
+          ...(replyTo ? { replyTo } : {}),
           subject,
           text: body,
+          html: renderBlastHtml(subject, body),
         });
 
         if (sendError) {

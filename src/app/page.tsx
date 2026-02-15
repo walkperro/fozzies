@@ -126,13 +126,13 @@ export default function HomePage() {
                   animationDuration: `${banner.speed}s`,
                 }}
               >
-                <span className="px-10">UPDATE · {banner.text}</span>
-                <span className="px-10">UPDATE · {banner.text}</span>
-                <span className="px-10">UPDATE · {banner.text}</span>
+                <span className="px-10">{banner.text}</span>
+                <span className="px-10">{banner.text}</span>
+                <span className="px-10">{banner.text}</span>
               </div>
             </div>
           ) : (
-            <div className="px-4 py-2.5 text-center font-serif text-[15px] text-charcoal">UPDATE · {banner.text}</div>
+            <div className="px-4 py-2.5 text-center font-serif text-[15px] text-charcoal">{banner.text}</div>
           )}
         </section>
       ) : null}

@@ -70,20 +70,7 @@ export default function ClientRowActions({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-charcoal">{name.trim() ? name : <span className="text-softgray">(none)</span>}</div>
-        {!editing ? (
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-charcoal/20 text-sm text-charcoal transition hover:bg-charcoal/5"
-            aria-label="Edit name"
-            title="Edit name"
-          >
-            ✏️
-          </button>
-        ) : null}
-      </div>
+      <div className="text-charcoal">{name.trim() ? name : <span className="text-softgray">(none)</span>}</div>
 
       {editing ? (
         <div className="flex flex-wrap items-center gap-2">
@@ -116,6 +103,13 @@ export default function ClientRowActions({
         </div>
       ) : (
         <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="rounded-full border border-charcoal/20 px-3 py-1 text-xs text-charcoal"
+          >
+            Edit name
+          </button>
           <button
             type="button"
             onClick={toggleUnsubscribed}

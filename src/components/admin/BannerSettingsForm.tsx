@@ -7,18 +7,27 @@ import type { SiteBannerSettings } from "@/lib/banner";
 type SaveState = "idle" | "saving" | "saved" | "error";
 
 export default function BannerSettingsForm({ initialValue }: { initialValue: SiteBannerSettings }) {
+  const minSeconds = 20;
+  const maxSeconds = 120;
+
   const router = useRouter();
   const [enabled, setEnabled] = useState(initialValue.enabled);
   const [text, setText] = useState(initialValue.text);
   const [mode, setMode] = useState<SiteBannerSettings["mode"]>(initialValue.mode);
-  const [speedInput, setSpeedInput] = useState(String(initialValue.speed ?? 40));
+  const [speed, setSpeed] = useState(
+    Number.isFinite(initialValue.speed)
+      ? Math.min(Math.max(initialValue.speed, minSeconds), maxSeconds)
+      : 40
+  );
   const [state, setState] = useState<SaveState>("idle");
   const [message, setMessage] = useState("");
 
-  function normalizeSpeedInput(raw: string) {
-    const parsed = Number(raw);
-    const safe = Number.isFinite(parsed) ? Math.min(Math.max(parsed, 20), 120) : 40;
-    return safe;
+  function sliderToSeconds(value: number) {
+    return Math.round(maxSeconds - (value / 100) * (maxSeconds - minSeconds));
+  }
+
+  function secondsToSlider(value: number) {
+    return Math.round(((maxSeconds - value) / (maxSeconds - minSeconds)) * 100);
   }
 
   useEffect(() => {
@@ -34,8 +43,8 @@ export default function BannerSettingsForm({ initialValue }: { initialValue: Sit
     e.preventDefault();
     setState("saving");
     setMessage("");
-    const speed = normalizeSpeedInput(speedInput);
-    setSpeedInput(String(speed));
+    const normalizedSpeed = Math.min(Math.max(speed, minSeconds), maxSeconds);
+    setSpeed(normalizedSpeed);
 
     try {
       const res = await fetch("/api/admin/banner", {
@@ -45,7 +54,7 @@ export default function BannerSettingsForm({ initialValue }: { initialValue: Sit
           enabled,
           text,
           mode,
-          speed,
+          speed: normalizedSpeed,
         }),
       });
       const json = await res.json();
@@ -97,20 +106,24 @@ export default function BannerSettingsForm({ initialValue }: { initialValue: Sit
         </div>
 
         <div>
-          <label className="block text-[11px] tracking-[0.18em] text-softgray">MARQUEE SPEED (SECONDS)</label>
-          <input
-            type="number"
-            min={20}
-            max={120}
-            inputMode="numeric"
-            value={speedInput}
-            onChange={(e) => {
-              const next = e.target.value;
-              if (next === "" || /^[0-9]+$/.test(next)) setSpeedInput(next);
-            }}
-            onBlur={() => setSpeedInput(String(normalizeSpeedInput(speedInput)))}
-            className="mt-2 w-full border border-charcoal/15 bg-cream px-3 py-2 text-charcoal outline-none"
-          />
+          <label className="block text-[11px] tracking-[0.18em] text-softgray">MARQUEE SPEED</label>
+          <div className={`mt-2 rounded-sm border border-charcoal/10 bg-cream px-3 py-3 ${mode === "static" ? "opacity-55" : ""}`}>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={secondsToSlider(speed)}
+              onChange={(e) => setSpeed(sliderToSeconds(Number(e.target.value)))}
+              disabled={mode === "static"}
+              className="w-full accent-gold"
+            />
+            <div className="mt-2 flex items-center justify-between text-xs text-softgray">
+              <span>Slow</span>
+              <span>Fast</span>
+            </div>
+            <div className="mt-2 text-sm text-softgray">Preview: message passes in ~{speed}s</div>
+          </div>
         </div>
       </div>
 
