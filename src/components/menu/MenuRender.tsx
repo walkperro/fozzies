@@ -93,7 +93,7 @@ function Section({
         {items.map((it, index) => {
           const isGlutenFree = it.glutenFree ?? it.gf;
           return (
-            <div key={`${it.name}-${index}`} className="text-center">
+            <div key={it.id || `${it.name}-${index}`} className="text-center">
               <div className="inline-flex items-baseline gap-2">
                 <h3 className="font-serif text-xl text-charcoal">{it.name}</h3>
                 {it.price ? <span className="text-sm text-softgray">{it.price}</span> : null}
@@ -159,7 +159,7 @@ export default function MenuRender({ menuMeta, menuSections, pdfUrl, previewMode
       </header>
 
       {resolvedSections.map((section, index) => (
-        <Section key={`${section.title}-${index}`} title={section.title} subtitle={section.subtitle} items={section.items} />
+        <Section key={section.id || `${section.title}-${index}`} title={section.title} subtitle={section.subtitle} items={section.items} />
       ))}
 
       <footer className="mt-16 border-t border-charcoal/10 pt-10">

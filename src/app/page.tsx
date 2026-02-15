@@ -10,6 +10,13 @@ type AnnouncementItem = {
   body: string;
 };
 
+type BannerSettings = {
+  enabled: boolean;
+  text: string;
+  mode: "static" | "marquee";
+  speed: number;
+};
+
 export default function HomePage() {
   const slides = useMemo(
     () => [
@@ -24,11 +31,25 @@ export default function HomePage() {
   const [active, setActive] = useState(0);
   const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
   const [expandedAnnouncementIds, setExpandedAnnouncementIds] = useState<string[]>([]);
+  const [collapsedDesktopAnnouncementIds, setCollapsedDesktopAnnouncementIds] = useState<string[]>([]);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [banner, setBanner] = useState<BannerSettings | null>(null);
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterBusy, setNewsletterBusy] = useState(false);
+  const [newsletterStatus, setNewsletterStatus] = useState("");
 
   useEffect(() => {
     const id = setInterval(() => setActive((i) => (i + 1) % slides.length), 9000);
     return () => clearInterval(id);
   }, [slides.length]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const onChange = () => setIsDesktop(media.matches);
+    onChange();
+    media.addEventListener("change", onChange);
+    return () => media.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -48,9 +69,74 @@ export default function HomePage() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    async function loadBanner() {
+      try {
+        const res = await fetch("/api/banner", { cache: "no-store" });
+        const json = await res.json();
+        if (!res.ok || cancelled) return;
+        setBanner(json as BannerSettings);
+      } catch {
+        if (!cancelled) setBanner(null);
+      }
+    }
+    loadBanner();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function onNewsletterSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setNewsletterBusy(true);
+    setNewsletterStatus("");
+    try {
+      const res = await fetch("/api/newsletter/subscribe", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          email: newsletterEmail,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) throw new Error(json.error || "Subscription failed");
+
+      setNewsletterStatus(json.status === "already_subscribed" ? "You’re already on the list." : "You’re on the list.");
+      if (json.status === "subscribed") {
+        setNewsletterEmail("");
+      }
+    } catch (err) {
+      setNewsletterStatus(err instanceof Error ? err.message : "Subscription failed");
+    } finally {
+      setNewsletterBusy(false);
+    }
+  }
+
   return (
     <main className="mx-auto max-w-6xl px-4 pt-6 pb-14 sm:px-6 sm:pt-8">
-      
+      {banner?.enabled && banner.text ? (
+        <section className="mb-6 overflow-hidden border-y border-gold/50 bg-gradient-to-r from-cream via-ivory to-cream shadow-sm">
+          {banner.mode === "marquee" ? (
+            <div className="overflow-hidden px-3 py-2.5">
+              <div
+                key={`${banner.mode}-${banner.speed}-${banner.text}`}
+                className="fz-marquee inline-flex min-w-full whitespace-nowrap font-serif text-[15px] text-charcoal"
+                style={{
+                  animationDuration: `${banner.speed}s`,
+                }}
+              >
+                <span className="px-10">UPDATE · {banner.text}</span>
+                <span className="px-10">UPDATE · {banner.text}</span>
+                <span className="px-10">UPDATE · {banner.text}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="px-4 py-2.5 text-center font-serif text-[15px] text-charcoal">UPDATE · {banner.text}</div>
+          )}
+        </section>
+      ) : null}
+
       {/* HERO CAROUSEL */}
       <section className="relative overflow-hidden border border-charcoal/10 bg-cream shadow-sm">
         {/* Background slides */}
@@ -122,7 +208,7 @@ export default function HomePage() {
       </section>
 
       {announcements.length > 0 ? (
-        <section className="mt-16 max-w-6xl border border-charcoal/10 bg-cream p-6 shadow-sm sm:p-8">
+        <section className="mx-auto mt-16 w-full max-w-6xl border border-charcoal/10 bg-cream p-6 shadow-sm sm:p-8">
           <div className="mx-auto w-full">
             <div className="text-center">
               <div className="inline-flex items-center gap-3 whitespace-nowrap text-[11px] tracking-[0.18em] sm:text-xs sm:tracking-[0.22em] text-softgray">
@@ -134,13 +220,11 @@ export default function HomePage() {
               <div className="mx-auto mt-5 h-px w-48 bg-gold/60" />
             </div>
 
-            <div
-              className={`mt-8 grid gap-4 ${
-                announcements.length > 2 ? "lg:grid-cols-3 md:grid-cols-2" : "md:grid-cols-2"
-              }`}
-            >
+            <div className="mx-auto mt-8 grid max-w-6xl gap-4 lg:grid-cols-2">
               {announcements.map((item) => {
-                const isExpanded = expandedAnnouncementIds.includes(item.id);
+                const isExpanded = isDesktop
+                  ? !collapsedDesktopAnnouncementIds.includes(item.id)
+                  : expandedAnnouncementIds.includes(item.id);
                 const shouldTruncate = item.body.length > 180;
                 const previewBody =
                   !shouldTruncate || isExpanded ? item.body : `${item.body.slice(0, 180).trim()}...`;
@@ -152,11 +236,17 @@ export default function HomePage() {
                     {shouldTruncate ? (
                       <button
                         type="button"
-                        onClick={() =>
+                        onClick={() => {
+                          if (isDesktop) {
+                            setCollapsedDesktopAnnouncementIds((prev) =>
+                              prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]
+                            );
+                            return;
+                          }
                           setExpandedAnnouncementIds((prev) =>
                             prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]
-                          )
-                        }
+                          );
+                        }}
                         className="mt-3 text-sm font-medium text-charcoal underline decoration-gold/70 underline-offset-4"
                       >
                         {isExpanded ? "Read Less" : "Read More"}
@@ -169,7 +259,6 @@ export default function HomePage() {
           </div>
         </section>
       ) : null}
-
 
       {/* Chef */}
       <section className="mt-16 grid gap-10 md:grid-cols-12 md:items-center">
@@ -308,6 +397,33 @@ export default function HomePage() {
       </section>
 
       {/* Reserve */}
+      <section className="mx-auto mt-16 w-full max-w-4xl border border-charcoal/10 bg-cream p-6 shadow-sm sm:p-8">
+        <div className="text-center">
+          <h2 className="font-serif text-3xl text-charcoal">Stay in the Fozzie&apos;s Circle</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-softgray">
+            Seasonal menus, special evenings, and reservation updates — occasionally.
+          </p>
+        </div>
+
+        <form onSubmit={onNewsletterSubmit} className="mx-auto mt-6 grid max-w-2xl gap-3 sm:grid-cols-[1fr_auto]">
+          <input
+            type="email"
+            required
+            value={newsletterEmail}
+            onChange={(e) => setNewsletterEmail(e.target.value)}
+            placeholder="Email address"
+            className="w-full border border-charcoal/15 bg-ivory px-3 py-2 text-charcoal outline-none"
+          />
+          <button
+            disabled={newsletterBusy}
+            className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-charcoal transition hover:opacity-90 disabled:opacity-70"
+          >
+            {newsletterBusy ? "Joining..." : "Join"}
+          </button>
+        </form>
+        {newsletterStatus ? <p className="mt-3 text-center text-sm text-softgray">{newsletterStatus}</p> : null}
+      </section>
+
       <section id="reserve" className="mt-16 scroll-mt-24">
         <ReserveForm />
       </section>

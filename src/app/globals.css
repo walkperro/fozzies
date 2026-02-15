@@ -91,3 +91,16 @@ html, body { overflow-x: hidden;
     /* 2) gold wash (your brand color) */
     linear-gradient(rgba(200,162,74,0.34), rgba(200,162,74,0.34));
 }
+
+@keyframes fzMarquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+
+.fz-marquee {
+  animation-name: fzMarquee;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: normal;
+  will-change: transform;
+}

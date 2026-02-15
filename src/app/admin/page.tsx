@@ -3,6 +3,7 @@ import Link from "next/link";
 const CARDS = [
   { href: "/admin/reservations", title: "Reservations", note: "Manage incoming reservation requests." },
   { href: "/admin/announcements", title: "Announcements", note: "Create and publish homepage announcements." },
+  { href: "/admin/banner", title: "Banner", note: "Manage the homepage banner text and animation mode." },
   { href: "/admin/clients", title: "Clients", note: "Newsletter list and blast composer skeleton." },
   { href: "/admin/menu", title: "Menu Editor", note: "Edit menu content persisted in site settings." },
   { href: "/admin/menu-pdf", title: "Menu PDF", note: "Upload/swap the downloadable menu PDF." },

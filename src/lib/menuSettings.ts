@@ -63,6 +63,7 @@ function normalizeMenuItem(value: unknown): MenuItem | null {
         : undefined;
 
   return {
+    id: typeof item.id === "string" && item.id.trim() ? item.id : undefined,
     name,
     price: typeof item.price === "string" ? item.price.trim() || undefined : undefined,
     glutenFree: rawGlutenFree,
@@ -82,6 +83,7 @@ function normalizeMenuSection(value: unknown): MenuSection | null {
     : [];
 
   return {
+    id: typeof section.id === "string" && section.id.trim() ? section.id : undefined,
     title,
     subtitle: typeof section.subtitle === "string" && section.subtitle.trim() ? section.subtitle : undefined,
     items,

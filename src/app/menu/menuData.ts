@@ -30,6 +30,7 @@ export const MENU_META: MenuMeta = {
 };
 
 export type MenuItem = {
+  id?: string;
   name: string;
   price?: string;
   glutenFree?: boolean;
@@ -38,6 +39,7 @@ export type MenuItem = {
 };
 
 export type MenuSection = {
+  id?: string;
   title: string;
   subtitle?: string;
   items: MenuItem[];

@@ -50,7 +50,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: `Failed to save setting: ${settingError.message}` }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, path: setting.path, provider: "supabase-storage" });
+    return NextResponse.json({
+      ok: true,
+      path: setting.path,
+      updatedAt: setting.updatedAt,
+      fileName: file.name,
+      provider: "supabase-storage",
+    });
   } catch (err) {
     return NextResponse.json(
       {

@@ -8,13 +8,26 @@ import { getDefaultMenuPayload, type MenuPayload } from "@/lib/menuSettings";
 type PreviewViewport = "mobile" | "desktop";
 
 const DEFAULTS = getDefaultMenuPayload();
-const EMPTY_ITEM: MenuItem = { name: "New Item", desc: [], price: "", glutenFree: false, gf: false };
-const EMPTY_SECTION: MenuSection = { title: "New Section", subtitle: "", items: [{ ...EMPTY_ITEM }] };
+function makeId(prefix: string) {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `${prefix}-${crypto.randomUUID()}`;
+  }
+  return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+const EMPTY_ITEM: MenuItem = { id: makeId("item"), name: "New Item", desc: [], price: "", glutenFree: false, gf: false };
+const EMPTY_SECTION: MenuSection = {
+  id: makeId("section"),
+  title: "New Section",
+  subtitle: "",
+  items: [{ ...EMPTY_ITEM, id: makeId("item") }],
+};
 
 function normalizeItem(item: MenuItem): MenuItem {
   const isGlutenFree = item.glutenFree ?? item.gf ?? false;
   return {
     ...item,
+    id: item.id || makeId("item"),
     price: typeof item.price === "string" ? item.price : "",
     glutenFree: isGlutenFree,
     gf: isGlutenFree,
@@ -25,6 +38,7 @@ function normalizeItem(item: MenuItem): MenuItem {
 function normalizeSection(section: MenuSection): MenuSection {
   return {
     ...section,
+    id: section.id || makeId("section"),
     subtitle: section.subtitle || "",
     items: (section.items || []).map(normalizeItem),
   };
@@ -43,11 +57,21 @@ export default function MenuEditor({
   currentPdfPath: string;
   saveAction: (payload: MenuPayload) => Promise<{ ok: boolean; error?: string }>;
 }) {
+  const initialState = useMemo<MenuPayload>(
+    () => ({
+      meta: {
+        ...DEFAULTS.meta,
+        ...initialValue.meta,
+      },
+      sections: initialValue.sections.map(normalizeSection),
+    }),
+    [initialValue]
+  );
+
   const [meta, setMeta] = useState<MenuPayload["meta"]>({
-    ...DEFAULTS.meta,
-    ...initialValue.meta,
+    ...initialState.meta,
   });
-  const [sections, setSections] = useState<MenuSection[]>(initialValue.sections.map(normalizeSection));
+  const [sections, setSections] = useState<MenuSection[]>(initialState.sections);
   const [isPending, startTransition] = useTransition();
   const [status, setStatus] = useState<string>("");
   const [previewViewport, setPreviewViewport] = useState<PreviewViewport>("desktop");
@@ -83,7 +107,10 @@ export default function MenuEditor({
   }
 
   function addSection() {
-    setSections((prev) => [...prev, { ...EMPTY_SECTION, items: [{ ...EMPTY_ITEM }] }]);
+    setSections((prev) => [
+      ...prev,
+      { ...EMPTY_SECTION, id: makeId("section"), items: [{ ...EMPTY_ITEM, id: makeId("item") }] },
+    ]);
   }
 
   function deleteSection(index: number) {
@@ -97,7 +124,7 @@ export default function MenuEditor({
           ? section
           : {
               ...section,
-              items: [...section.items, { ...EMPTY_ITEM }],
+              items: [...section.items, { ...EMPTY_ITEM, id: makeId("item") }],
             }
       )
     );
@@ -219,7 +246,7 @@ export default function MenuEditor({
           </div>
 
           {sections.map((section, sectionIndex) => (
-            <div key={`${section.title}-${sectionIndex}`} className="border border-charcoal/10 bg-cream p-4">
+            <div key={section.id || `section-${sectionIndex}`} className="border border-charcoal/10 bg-cream p-4">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div className="text-xs tracking-[0.14em] text-softgray">SECTION {sectionIndex + 1}</div>
                 <div className="flex flex-wrap gap-2">
@@ -280,7 +307,7 @@ export default function MenuEditor({
 
               <div className="mt-4 space-y-3">
                 {section.items.map((item, itemIndex) => (
-                  <div key={`${item.name}-${itemIndex}`} className="border border-charcoal/10 bg-ivory p-3">
+                  <div key={item.id || `item-${itemIndex}`} className="border border-charcoal/10 bg-ivory p-3">
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                       <div className="text-xs tracking-[0.14em] text-softgray">ITEM {itemIndex + 1}</div>
                       <div className="flex flex-wrap gap-2">

@@ -1,14 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+type UploadState = "idle" | "uploading" | "uploaded" | "error";
 
 export default function MenuPdfUploadForm() {
-  const [busy, setBusy] = useState(false);
+  const router = useRouter();
+  const [state, setState] = useState<UploadState>("idle");
   const [status, setStatus] = useState<string>("");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setBusy(true);
+    setState("uploading");
     setStatus("");
 
     const form = e.currentTarget;
@@ -21,12 +25,15 @@ export default function MenuPdfUploadForm() {
       });
       const json = await res.json();
       if (!res.ok || !json.ok) throw new Error(json.error || "Upload failed");
-      setStatus(`Uploaded. Current path: ${json.path}`);
+      const updatedLabel = json.updatedAt ? new Date(json.updatedAt).toLocaleString() : new Date().toLocaleString();
+      const fileLabel = json.fileName ? ` (${json.fileName})` : "";
+      setState("uploaded");
+      setStatus(`Uploaded.${fileLabel} ${updatedLabel}`);
       form.reset();
+      router.refresh();
     } catch (err) {
+      setState("error");
       setStatus(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -43,12 +50,12 @@ export default function MenuPdfUploadForm() {
         />
       </div>
       <button
-        disabled={busy}
+        disabled={state === "uploading"}
         className="w-fit rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-charcoal transition hover:opacity-90 disabled:opacity-70"
       >
-        {busy ? "Uploading..." : "Upload PDF"}
+        {state === "uploading" ? "Uploading..." : "Upload PDF"}
       </button>
-      {status ? <p className="text-sm text-softgray">{status}</p> : null}
+      {status ? <p className={`text-sm ${state === "error" ? "text-red-700" : "text-softgray"}`}>{status}</p> : null}
     </form>
   );
 }
