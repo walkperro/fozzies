@@ -4,6 +4,7 @@ import { useState } from "react";
 
 export default function AdminLoginPage() {
   const [token, setToken] = useState("");
+  const [showToken, setShowToken] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -37,12 +38,47 @@ export default function AdminLoginPage() {
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <div>
             <label className="block text-[11px] tracking-[0.18em] text-softgray">ADMIN TOKEN</label>
-            <input
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              className="mt-2 w-full border border-charcoal/15 bg-ivory px-3 py-2 text-charcoal outline-none"
-              placeholder="••••••••••••••••"
-            />
+            <div className="relative mt-2">
+              <input
+                type={showToken ? "text" : "password"}
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                className="w-full border border-charcoal/15 bg-ivory px-3 py-2 pr-11 text-charcoal outline-none"
+                placeholder="••••••••••••••••"
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowToken((v) => !v)}
+                aria-label={showToken ? "Hide token" : "Show token"}
+                className="absolute right-1.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-charcoal/10 bg-cream text-sm text-softgray transition hover:bg-ivory"
+              >
+                {showToken ? (
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4">
+                    <path
+                      d="M3 3l18 18m-3.5-5.2A9.9 9.9 0 0 0 21 12s-3.5-7-9-7c-1.7 0-3.2.4-4.5 1.1m-2.9 2.4A13.3 13.3 0 0 0 3 12s3.5 7 9 7c2.2 0 4.1-.7 5.6-1.8M14.1 14.1A3 3 0 0 1 9.9 9.9"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4">
+                    <path
+                      d="M1.5 12s3.8-7 10.5-7 10.5 7 10.5 7-3.8 7-10.5 7S1.5 12 1.5 12Z"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.8" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           {err && <div className="text-sm text-red-600">{err}</div>}

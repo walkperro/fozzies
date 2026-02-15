@@ -10,9 +10,23 @@ type MenuPdfSetting = {
   updatedAt?: string;
 };
 
+function getFilename(pathOrUrl: string) {
+  if (!pathOrUrl) return "menu.pdf";
+  try {
+    const url = new URL(pathOrUrl);
+    const name = url.pathname.split("/").pop();
+    return name || "menu.pdf";
+  } catch {
+    const withoutQuery = pathOrUrl.split("?")[0]?.split("#")[0] || "";
+    const name = withoutQuery.split("/").pop();
+    return name || "menu.pdf";
+  }
+}
+
 export default async function AdminMenuPdfPage() {
   const value = await getSettingValue<MenuPdfSetting>("menu_pdf");
   const currentPath = resolveMenuPdfPath(value);
+  const filename = getFilename(currentPath);
 
   return (
     <main>
@@ -25,7 +39,7 @@ export default async function AdminMenuPdfPage() {
       <section className="mt-8 border border-charcoal/10 bg-ivory p-5">
         <h3 className="font-serif text-2xl text-charcoal">Current PDF</h3>
         <div className="mt-2 text-sm text-softgray">
-          <div>Path: {currentPath}</div>
+          <div>File: {filename}</div>
           <div>Updated: {value?.updatedAt ? new Date(value.updatedAt).toLocaleString() : "Unknown"}</div>
         </div>
         <div className="mt-3">
@@ -40,8 +54,6 @@ export default async function AdminMenuPdfPage() {
         </div>
 
         <MenuPdfUploadForm />
-
-        <div className="mt-4 text-xs text-softgray">Storage bucket required: create `public-assets` in Supabase Storage and set it public.</div>
       </section>
     </main>
   );

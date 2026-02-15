@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, type ReactNode } from "react";
 
 const LINKS = [
   { href: "/admin", label: "Dashboard" },
@@ -17,9 +17,22 @@ const LINKS = [
 
 export default function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
   const onLogin = pathname === "/admin/login";
 
   if (onLogin) return <>{children}</>;
+
+  async function handleLogout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await fetch("/api/admin/logout", { method: "POST", headers: { accept: "application/json" } });
+    } finally {
+      router.replace("/admin/login");
+      router.refresh();
+    }
+  }
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
@@ -30,11 +43,14 @@ export default function AdminShell({ children }: { children: ReactNode }) {
               <div className="text-[11px] tracking-[0.18em] text-softgray">FOZZIE&apos;S ADMIN</div>
               <h1 className="mt-1 font-serif text-2xl text-charcoal">Dashboard</h1>
             </div>
-            <form action="/api/admin/logout" method="post">
-              <button className="rounded-full border border-gold px-4 py-2 text-sm font-medium text-charcoal transition hover:bg-gold/15">
-                Log out
-              </button>
-            </form>
+            <button
+              type="button"
+              onClick={() => void handleLogout()}
+              disabled={loggingOut}
+              className="rounded-full border border-gold px-4 py-2 text-sm font-medium text-charcoal transition hover:bg-gold/15 disabled:opacity-70"
+            >
+              {loggingOut ? "Logging out..." : "Log out"}
+            </button>
           </div>
 
           <nav className="mt-4 flex flex-wrap gap-2">

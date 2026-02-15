@@ -58,6 +58,26 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: existing.error.message }, { status: 500 });
   }
 
+  if (existing.data?.unsubscribed) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "You’re currently unsubscribed. If you want back in, contact us or resubscribe from a prior email link.",
+      },
+      { status: 409 }
+    );
+  }
+
+  if (existing.data?.suppressed) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "This email cannot be subscribed right now. Please contact us for assistance.",
+      },
+      { status: 409 }
+    );
+  }
+
   if (existing.data && existing.data.unsubscribed === false) {
     return NextResponse.json({ ok: true, status: "already_subscribed" as const });
   }

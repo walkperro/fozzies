@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { escHtml, renderEmailFooter, renderLuxuryEmailHtml } from "@/lib/emailMarketing";
 
 export const runtime = "nodejs";
 
@@ -36,15 +37,6 @@ async function isAuthed(req: NextRequest) {
   const headerOk = req.headers.get("x-admin-token") === expected;
 
   return cookieOk || headerOk;
-}
-
-function escHtml(s: string) {
-  return s
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
@@ -126,38 +118,24 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
       to: r.email,
       replyTo,
       subject,
-      text: `${headline}\n\n${bodyText}\n\nRequested: ${r.date} ${r.time} (Party of ${r.party_size})`,
-      html: `
-<div style="background:#F7F4EF;padding:24px 0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;">
-  <div style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid rgba(30,30,30,0.12);">
-    <div style="padding:22px 22px 10px;">
-      <div style="font-size:12px;letter-spacing:0.18em;color:#8E8E8E;text-transform:uppercase;">
-        Fozzie's Dining
-      </div>
-      <div style="font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.2;color:#1E1E1E;margin-top:8px;">
-        ${escHtml(headline)}
-      </div>
-      <div style="height:1px;background:rgba(200,162,74,0.55);margin:14px 0 0;"></div>
-    </div>
-    <div style="padding:18px 22px 22px;color:#1E1E1E;">
-      <div style="font-size:15px;line-height:1.6;margin-bottom:14px;">
-        Hi ${escHtml(String(r.name || ""))},<br/><br/>
-        ${escHtml(bodyText)}
-      </div>
-
-      <div style="background:#F7F4EF;border:1px solid rgba(30,30,30,0.10);padding:12px;font-size:14px;line-height:1.5;">
-        <b>Request:</b> ${escHtml(String(r.date))} at ${escHtml(String(r.time))} • Party of ${escHtml(
-          String(r.party_size)
-        )}
-      </div>
-
-      <div style="margin-top:14px;color:#8E8E8E;font-size:12px;">
-        If you have questions, reply to this email.
-      </div>
-    </div>
-  </div>
+      text:
+        `${headline}\n\n${bodyText}\n\nRequested: ${r.date} ${r.time} (Party of ${r.party_size})` +
+        `\n\nFozzie's Dining\nCookeville, TN\nfozziesdining.com`,
+      html: renderLuxuryEmailHtml({
+        eyebrow: "Fozzie's Dining",
+        heading: headline,
+        contentHtml: `
+Hi ${escHtml(String(r.name || ""))},<br/><br/>
+${escHtml(bodyText)}
+<div style="margin-top:14px;background:rgba(247,244,239,0.08);border:1px solid rgba(200,162,74,0.35);padding:12px;font-size:14px;line-height:1.5;">
+  <b>Request:</b> ${escHtml(String(r.date))} at ${escHtml(String(r.time))} • Party of ${escHtml(String(r.party_size))}
 </div>
-      `,
+<div style="margin-top:14px;color:#B6B6B6;font-size:12px;">
+  If you have questions, reply to this email.
+</div>
+        `,
+        footerHtml: renderEmailFooter(),
+      }),
     });
 
     if (sendResult.error) {
