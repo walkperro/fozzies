@@ -1,4 +1,5 @@
 import Link from "next/link";
+import UtmLinkBuilder from "@/components/admin/UtmLinkBuilder";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const runtime = "nodejs";
@@ -17,11 +18,38 @@ type AnalyticsEventRow = {
   utm_medium: string | null;
   visitor_id: string | null;
   device: string | null;
+  city: string | null;
+  region: string | null;
+  country: string | null;
   meta: Record<string, unknown> | null;
 };
 
-const conversionEvents = new Set(["reservation_submit", "newsletter_signup", "job_application_submit"]);
+const majorConversionEvents = new Set(["reservation_submit"]);
+const secondaryConversionEvents = new Set(["newsletter_signup", "job_application_submit"]);
+const engagementEvents = new Set(["menu_pdf_open"]);
+const allConversionEvents = new Set([...majorConversionEvents, ...secondaryConversionEvents]);
 const clickEvents = new Set(["menu_pdf_open", "click"]);
+
+const friendlyPathMap: Record<string, string> = {
+  "/": "Home",
+  "/menu": "Menu",
+  "/about": "About",
+  "/contact": "Contact",
+  "/faq": "FAQ",
+  "/join-the-team": "Join the Team",
+  "/privacy": "Privacy Policy",
+};
+
+const friendlyEventMap: Record<string, string> = {
+  page_view: "Visited page",
+  menu_pdf_open: "Opened menu PDF",
+  newsletter_signup: "Joined email list",
+  reservation_submit: "Reservation request",
+  job_application_submit: "Job application",
+  admin_login: "Admin: Login",
+  admin_logout: "Admin: Logout",
+  admin_pdf_upload: "Admin: Uploaded menu PDF",
+};
 
 function getHours(range: RangeKey) {
   if (range === "24h") return 24;
@@ -44,13 +72,39 @@ function formatRangeLabel(range: RangeKey) {
   return "Last 7 Days";
 }
 
+function formatEventLabel(eventType: string) {
+  return friendlyEventMap[eventType] || eventType;
+}
+
+function formatPathLabel(path: string | null) {
+  if (!path) return "—";
+  const basePath = path.split("?")[0]?.split("#")[0] || path;
+  return friendlyPathMap[basePath] || path;
+}
+
+function isAdminPath(path: string | null) {
+  return !!path && path.startsWith("/admin");
+}
+
 function inGroup(eventType: string, group: GroupKey) {
   if (group === "all") return true;
   if (group === "page") return eventType === "page_view";
-  if (group === "conversion") return conversionEvents.has(eventType);
+  if (group === "conversion") return allConversionEvents.has(eventType) || engagementEvents.has(eventType);
   if (group === "admin") return eventType.startsWith("admin_");
   if (group === "click") return clickEvents.has(eventType);
   return true;
+}
+
+function HelpTip({ text }: { text: string }) {
+  return (
+    <span
+      title={text}
+      className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-charcoal/20 text-[10px] text-softgray"
+      aria-label={text}
+    >
+      ?
+    </span>
+  );
 }
 
 function DataTable({
@@ -70,12 +124,18 @@ function DataTable({
       {rows.length === 0 ? (
         <p className="mt-4 text-sm text-softgray">{empty}</p>
       ) : (
-        <div className="mt-4 overflow-x-auto">
+        <div className="mt-4 overflow-x-auto pr-4">
           <table className="w-full min-w-[440px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-charcoal/10 text-softgray">
-                {headers.map((header) => (
-                  <th key={header} className="py-2 pr-3 font-medium">
+                {headers.map((header, idx) => (
+                  <th
+                    key={header}
+                    className={[
+                      "px-3 py-2 font-medium",
+                      idx === headers.length - 1 ? "whitespace-nowrap pr-4 text-right tabular-nums" : "",
+                    ].join(" ")}
+                  >
                     {header}
                   </th>
                 ))}
@@ -85,7 +145,13 @@ function DataTable({
               {rows.map((row, idx) => (
                 <tr key={`${title}-${idx}`} className="border-b border-charcoal/10 align-top">
                   {row.map((cell, cellIdx) => (
-                    <td key={`${title}-${idx}-${cellIdx}`} className="py-2 pr-3 text-charcoal">
+                    <td
+                      key={`${title}-${idx}-${cellIdx}`}
+                      className={[
+                        "px-3 py-2 text-charcoal",
+                        cellIdx === row.length - 1 ? "whitespace-nowrap pr-4 text-right tabular-nums" : "",
+                      ].join(" ")}
+                    >
                       {cell}
                     </td>
                   ))}
@@ -107,12 +173,14 @@ export default async function AdminActivityPage({
   const resolved = (await searchParams) || {};
   const rangeParam = resolved.range;
   const groupParam = resolved.group;
+  const includeAdminParam = resolved.include_admin;
   const range = (typeof rangeParam === "string" && ["24h", "7d", "30d"].includes(rangeParam)
     ? rangeParam
     : "7d") as RangeKey;
   const group = (typeof groupParam === "string" && ["all", "page", "conversion", "admin", "click"].includes(groupParam)
     ? groupParam
     : "all") as GroupKey;
+  const includeAdminTraffic = includeAdminParam === "1";
 
   const sinceDate = new Date();
   sinceDate.setHours(sinceDate.getHours() - getHours(range));
@@ -121,45 +189,79 @@ export default async function AdminActivityPage({
   const { data, error } = await supabase
     .schema("fozzies")
     .from("analytics_events")
-    .select("id,created_at,event_type,page_path,referrer,utm_source,utm_medium,visitor_id,device,meta")
+    .select("id,created_at,event_type,page_path,referrer,utm_source,utm_medium,visitor_id,device,city,region,country,meta")
     .gte("created_at", since)
     .order("created_at", { ascending: false })
     .limit(5000);
 
   const events = (error ? [] : (data || [])) as AnalyticsEventRow[];
+  const summaryEvents = includeAdminTraffic
+    ? events
+    : events.filter((event) => !isAdminPath(event.page_path) && !event.event_type.startsWith("admin_"));
+  const pageViewEvents = summaryEvents.filter((event) => event.event_type === "page_view");
 
-  const pageViews = events.filter((e) => e.event_type === "page_view").length;
-  const uniqueVisitors = new Set(events.map((e) => e.visitor_id).filter((id): id is string => !!id)).size;
-  const conversions = events.filter((e) => conversionEvents.has(e.event_type)).length;
+  const totalPageViews = pageViewEvents.length;
+  const uniqueVisitors = new Set(pageViewEvents.map((e) => e.visitor_id).filter((id): id is string => !!id)).size;
+
+  const reservationCount = summaryEvents.filter((e) => majorConversionEvents.has(e.event_type)).length;
+  const newsletterCount = summaryEvents.filter((e) => e.event_type === "newsletter_signup").length;
+  const jobAppCount = summaryEvents.filter((e) => e.event_type === "job_application_submit").length;
+  const menuOpenCount = summaryEvents.filter((e) => e.event_type === "menu_pdf_open").length;
+
+  const actionsTaken = reservationCount + newsletterCount + jobAppCount;
+  const conversionRate = uniqueVisitors > 0 ? (reservationCount / uniqueVisitors) * 100 : 0;
 
   const topPagesMap = new Map<string, number>();
   const conversionMap = new Map<string, number>();
+  const topActionsMap = new Map<string, number>();
   const utmMap = new Map<string, number>();
   const referrerMap = new Map<string, number>();
+  const deviceMap = new Map<string, number>();
+  const cityVisitorsMap = new Map<string, Set<string>>();
 
-  for (const event of events) {
-    if (event.page_path) {
+  for (const event of summaryEvents) {
+    if (event.event_type === "page_view" && event.page_path) {
       topPagesMap.set(event.page_path, (topPagesMap.get(event.page_path) || 0) + 1);
     }
-    if (conversionEvents.has(event.event_type)) {
+
+    if (allConversionEvents.has(event.event_type)) {
       conversionMap.set(event.event_type, (conversionMap.get(event.event_type) || 0) + 1);
     }
+
+    if (event.event_type !== "page_view") {
+      topActionsMap.set(event.event_type, (topActionsMap.get(event.event_type) || 0) + 1);
+    }
+
     if (event.utm_source || event.utm_medium) {
       const source = event.utm_source || "(direct)";
       const medium = event.utm_medium || "(none)";
       const key = `${source} / ${medium}`;
       utmMap.set(key, (utmMap.get(key) || 0) + 1);
     }
+
     const domain = getReferrerDomain(event.referrer);
     if (domain) {
       referrerMap.set(domain, (referrerMap.get(domain) || 0) + 1);
+    }
+
+    if (event.event_type === "page_view") {
+      const device = (event.device || "unknown").toLowerCase();
+      const normalizedDevice = device === "mobile" || device === "desktop" || device === "tablet" ? device : "other";
+      deviceMap.set(normalizedDevice, (deviceMap.get(normalizedDevice) || 0) + 1);
+
+      if (event.city && event.visitor_id) {
+        const cityLabel = `${event.city}${event.region ? `, ${event.region}` : ""}${event.country ? ` (${event.country})` : ""}`;
+        const set = cityVisitorsMap.get(cityLabel) || new Set<string>();
+        set.add(event.visitor_id);
+        cityVisitorsMap.set(cityLabel, set);
+      }
     }
   }
 
   const topPagesRows = Array.from(topPagesMap.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 15)
-    .map(([path, count]) => [path, String(count)]);
+    .map(([path, count]) => [formatPathLabel(path), String(count)]);
 
   const utmRows = Array.from(utmMap.entries())
     .sort((a, b) => b[1] - a[1])
@@ -173,7 +275,25 @@ export default async function AdminActivityPage({
 
   const conversionRows = Array.from(conversionMap.entries())
     .sort((a, b) => b[1] - a[1])
-    .map(([eventType, count]) => [eventType, String(count)]);
+    .map(([eventType, count]) => [formatEventLabel(eventType), String(count)]);
+
+  const topActionsRows = Array.from(topActionsMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([eventType, count]) => [formatEventLabel(eventType), String(count)]);
+
+  const deviceRows = Array.from(deviceMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([device, count]) => {
+      const pct = totalPageViews > 0 ? (count / totalPageViews) * 100 : 0;
+      const label = device.charAt(0).toUpperCase() + device.slice(1);
+      return [label, String(count), `${pct.toFixed(1)}%`];
+    });
+
+  const topCitiesRows = Array.from(cityVisitorsMap.entries())
+    .map(([city, visitorSet]) => [city, String(visitorSet.size)] as [string, string])
+    .sort((a, b) => Number(b[1]) - Number(a[1]))
+    .slice(0, 10);
 
   const filteredFeed = events.filter((event) => inGroup(event.event_type, group)).slice(0, 50);
 
@@ -189,7 +309,7 @@ export default async function AdminActivityPage({
         {(["24h", "7d", "30d"] as RangeKey[]).map((option) => (
           <Link
             key={option}
-            href={`/admin/activity?range=${option}&group=${group}`}
+            href={`/admin/activity?range=${option}&group=${group}${includeAdminTraffic ? "&include_admin=1" : ""}`}
             className={[
               "rounded-full border px-3 py-1 text-xs transition",
               option === range
@@ -200,6 +320,26 @@ export default async function AdminActivityPage({
             {option.toUpperCase()}
           </Link>
         ))}
+        <Link
+          href={`/admin/activity?range=${range}&group=${group}${includeAdminTraffic ? "" : "&include_admin=1"}`}
+          className={[
+            "rounded-full border px-3 py-1 text-xs transition",
+            includeAdminTraffic
+              ? "border-gold bg-gold/10 text-charcoal"
+              : "border-charcoal/20 bg-cream text-softgray hover:bg-charcoal/5",
+          ].join(" ")}
+        >
+          Include admin traffic
+        </Link>
+      </section>
+
+      <section className="mt-6 border border-charcoal/10 bg-ivory p-5">
+        <h3 className="font-serif text-2xl text-charcoal">How to read this</h3>
+        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-softgray">
+          <li><span className="text-charcoal">Total Page Views</span> counts every page load.</li>
+          <li><span className="text-charcoal">People Who Visited</span> counts different devices that visited.</li>
+          <li><span className="text-charcoal">Actions Taken</span> counts reservations, email signups, and job applications.</li>
+        </ul>
       </section>
 
       {events.length === 0 ? (
@@ -208,34 +348,116 @@ export default async function AdminActivityPage({
         </section>
       ) : (
         <>
-          <section className="mt-8 grid gap-4 md:grid-cols-3">
+          <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <div className="border border-charcoal/10 bg-ivory p-5">
-              <div className="text-xs tracking-[0.16em] text-softgray">PAGE VIEWS</div>
-              <div className="mt-2 font-serif text-4xl text-charcoal">{pageViews.toLocaleString()}</div>
+              <div className="flex items-center gap-2 text-xs tracking-[0.16em] text-softgray">
+                TOTAL PAGE VIEWS <HelpTip text="All page loads." />
+              </div>
+              <div className="mt-2 font-serif text-4xl text-charcoal">{totalPageViews.toLocaleString()}</div>
+              <p className="mt-2 text-xs text-softgray">All page loads.</p>
             </div>
             <div className="border border-charcoal/10 bg-ivory p-5">
-              <div className="text-xs tracking-[0.16em] text-softgray">UNIQUE VISITORS</div>
+              <div className="flex items-center gap-2 text-xs tracking-[0.16em] text-softgray">
+                PEOPLE WHO VISITED <HelpTip text="Different devices that visited." />
+              </div>
               <div className="mt-2 font-serif text-4xl text-charcoal">{uniqueVisitors.toLocaleString()}</div>
+              <p className="mt-2 text-xs text-softgray">Different devices that visited.</p>
             </div>
             <div className="border border-charcoal/10 bg-ivory p-5">
-              <div className="text-xs tracking-[0.16em] text-softgray">CONVERSIONS</div>
-              <div className="mt-2 font-serif text-4xl text-charcoal">{conversions.toLocaleString()}</div>
+              <div className="flex items-center gap-2 text-xs tracking-[0.16em] text-softgray">
+                ACTIONS TAKEN <HelpTip text="Reservations + signups + job applications." />
+              </div>
+              <div className="mt-2 font-serif text-4xl text-charcoal">{actionsTaken.toLocaleString()}</div>
+              <p className="mt-2 text-xs text-softgray">Reservations + signups + job applications.</p>
+            </div>
+            <div className="border border-charcoal/10 bg-ivory p-5">
+              <div className="flex items-center gap-2 text-xs tracking-[0.16em] text-softgray">
+                ENGAGEMENT <HelpTip text="Menu PDF opens." />
+              </div>
+              <div className="mt-2 font-serif text-4xl text-charcoal">{menuOpenCount.toLocaleString()}</div>
+              <p className="mt-2 text-xs text-softgray">Menu PDF opens.</p>
+            </div>
+            <div className="border border-charcoal/10 bg-ivory p-5">
+              <div className="flex items-center gap-2 text-xs tracking-[0.16em] text-softgray">
+                CONVERSION RATE <HelpTip text="Reservations ÷ People Who Visited" />
+              </div>
+              <div className="mt-2 font-serif text-4xl text-charcoal">{conversionRate.toFixed(1)}%</div>
+              <p className="mt-2 text-xs text-softgray">Reservations ÷ People Who Visited.</p>
+            </div>
+          </section>
+
+          <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="border border-charcoal/10 bg-ivory p-4">
+              <div className="text-xs tracking-[0.16em] text-softgray">RESERVATIONS</div>
+              <div className="mt-2 font-serif text-3xl text-charcoal">{reservationCount.toLocaleString()}</div>
+            </div>
+            <div className="border border-charcoal/10 bg-ivory p-4">
+              <div className="text-xs tracking-[0.16em] text-softgray">NEWSLETTER</div>
+              <div className="mt-2 font-serif text-3xl text-charcoal">{newsletterCount.toLocaleString()}</div>
+            </div>
+            <div className="border border-charcoal/10 bg-ivory p-4">
+              <div className="text-xs tracking-[0.16em] text-softgray">JOB APPLICATIONS</div>
+              <div className="mt-2 font-serif text-3xl text-charcoal">{jobAppCount.toLocaleString()}</div>
+            </div>
+            <div className="border border-charcoal/10 bg-ivory p-4">
+              <div className="text-xs tracking-[0.16em] text-softgray">MENU OPENS</div>
+              <div className="mt-2 font-serif text-3xl text-charcoal">{menuOpenCount.toLocaleString()}</div>
             </div>
           </section>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
             <DataTable
               title="Top Pages"
-              headers={["Page Path", "Views"]}
+              headers={["Page", "Views"]}
               rows={topPagesRows}
               empty="No page views in this range."
             />
             <DataTable
               title="Conversions Breakdown"
-              headers={["Event", "Count"]}
+              headers={["Action", "Count"]}
               rows={conversionRows}
               empty="No conversion events in this range."
             />
+          </div>
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            <DataTable
+              title="Top Actions"
+              headers={["Action", "Count"]}
+              rows={topActionsRows}
+              empty="No tracked actions yet."
+            />
+            <section className="border border-charcoal/10 bg-ivory p-5">
+              <div className="flex items-center gap-2">
+                <h3 className="font-serif text-2xl text-charcoal">Device Split</h3>
+                <HelpTip text="Device is estimated from the browser's user-agent." />
+              </div>
+              <p className="mt-2 text-sm text-softgray">Device is estimated from the browser&apos;s user-agent.</p>
+              {deviceRows.length === 0 ? (
+                <p className="mt-4 text-sm text-softgray">No device data in this range.</p>
+              ) : (
+                <div className="mt-4 overflow-x-auto pr-4">
+                  <table className="w-full min-w-[360px] border-collapse text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-charcoal/10 text-softgray">
+                        <th className="px-3 py-2 font-medium">Device</th>
+                        <th className="px-3 py-2 font-medium whitespace-nowrap pr-4 text-right tabular-nums">Count</th>
+                        <th className="px-3 py-2 font-medium whitespace-nowrap pr-4 text-right tabular-nums">Percent</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {deviceRows.map((row) => (
+                        <tr key={row[0]} className="border-b border-charcoal/10 align-top">
+                          <td className="px-3 py-2 text-charcoal">{row[0]}</td>
+                          <td className="px-3 py-2 whitespace-nowrap pr-4 text-right tabular-nums text-charcoal">{row[1]}</td>
+                          <td className="px-3 py-2 whitespace-nowrap pr-4 text-right tabular-nums text-charcoal">{row[2]}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
           </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
@@ -247,10 +469,42 @@ export default async function AdminActivityPage({
             />
             <DataTable
               title="Top Referrers"
-              headers={["Referrer Domain", "Events"]}
+              headers={["Referrer", "Events"]}
               rows={referrerRows}
               empty="No referrers recorded yet."
             />
+          </div>
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            <section className="border border-charcoal/10 bg-ivory p-5">
+              <h3 className="font-serif text-2xl text-charcoal">Top Cities</h3>
+              {topCitiesRows.length === 0 ? (
+                <div className="mt-4 space-y-2 text-sm text-softgray">
+                  <p>No city data yet.</p>
+                  <p>City may be unavailable if the platform doesn&apos;t provide geo headers.</p>
+                </div>
+              ) : (
+                <div className="mt-4 overflow-x-auto pr-4">
+                  <table className="w-full min-w-[360px] border-collapse text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-charcoal/10 text-softgray">
+                        <th className="px-3 py-2 font-medium">City</th>
+                        <th className="px-3 py-2 font-medium whitespace-nowrap pr-4 text-right tabular-nums">Visitors</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topCitiesRows.map((row) => (
+                        <tr key={row[0]} className="border-b border-charcoal/10 align-top">
+                          <td className="px-3 py-2 text-charcoal">{row[0]}</td>
+                          <td className="px-3 py-2 whitespace-nowrap pr-4 text-right tabular-nums text-charcoal">{row[1]}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+            <UtmLinkBuilder />
           </div>
 
           <section className="mt-6 border border-charcoal/10 bg-ivory p-5">
@@ -260,7 +514,7 @@ export default async function AdminActivityPage({
                 {(["all", "page", "conversion", "click", "admin"] as GroupKey[]).map((option) => (
                   <Link
                     key={option}
-                    href={`/admin/activity?range=${range}&group=${option}`}
+                    href={`/admin/activity?range=${range}&group=${option}${includeAdminTraffic ? "&include_admin=1" : ""}`}
                     className={[
                       "rounded-full border px-3 py-1 text-xs transition",
                       option === group
@@ -277,27 +531,27 @@ export default async function AdminActivityPage({
             {filteredFeed.length === 0 ? (
               <p className="mt-4 text-sm text-softgray">No events match this filter.</p>
             ) : (
-              <div className="mt-4 overflow-x-auto">
+              <div className="mt-4 overflow-x-auto pr-4">
                 <table className="w-full min-w-[820px] border-collapse text-left text-sm">
                   <thead>
                     <tr className="border-b border-charcoal/10 text-softgray">
-                      <th className="py-2 pr-3 font-medium">Time</th>
-                      <th className="py-2 pr-3 font-medium">Event</th>
-                      <th className="py-2 pr-3 font-medium">Path</th>
-                      <th className="py-2 pr-3 font-medium">Visitor</th>
-                      <th className="py-2 pr-3 font-medium">Device</th>
-                      <th className="py-2 pr-3 font-medium">Source</th>
+                      <th className="px-3 py-2 font-medium">Time</th>
+                      <th className="px-3 py-2 font-medium">Event</th>
+                      <th className="px-3 py-2 font-medium">Path</th>
+                      <th className="px-3 py-2 font-medium">Visitor</th>
+                      <th className="px-3 py-2 font-medium">Device</th>
+                      <th className="px-3 py-2 font-medium">Source</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredFeed.map((event) => (
                       <tr key={event.id} className="border-b border-charcoal/10 align-top">
-                        <td className="py-2 pr-3 text-softgray">{new Date(event.created_at).toLocaleString()}</td>
-                        <td className="py-2 pr-3 text-charcoal">{event.event_type}</td>
-                        <td className="py-2 pr-3 text-charcoal">{event.page_path || "—"}</td>
-                        <td className="py-2 pr-3 text-softgray">{event.visitor_id || "—"}</td>
-                        <td className="py-2 pr-3 text-softgray">{event.device || "—"}</td>
-                        <td className="py-2 pr-3 text-softgray">
+                        <td className="px-3 py-2 text-softgray">{new Date(event.created_at).toLocaleString()}</td>
+                        <td className="px-3 py-2 text-charcoal">{formatEventLabel(event.event_type)}</td>
+                        <td className="px-3 py-2 text-charcoal">{formatPathLabel(event.page_path)}</td>
+                        <td className="px-3 py-2 text-softgray">{event.visitor_id || "—"}</td>
+                        <td className="px-3 py-2 text-softgray">{event.device || "—"}</td>
+                        <td className="px-3 py-2 text-softgray">
                           {event.utm_source || event.utm_medium
                             ? `${event.utm_source || "(direct)"} / ${event.utm_medium || "(none)"}`
                             : getReferrerDomain(event.referrer) || "Direct"}

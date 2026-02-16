@@ -33,6 +33,15 @@ function rateLimitKey(visitorId: string | null, ip: string | null) {
   return visitorId || ip || "anonymous";
 }
 
+function headerText(req: Request, keys: string[], max: number) {
+  for (const key of keys) {
+    const value = req.headers.get(key);
+    const text = toText(value, max);
+    if (text) return text;
+  }
+  return null;
+}
+
 function isRateLimited(key: string) {
   const now = Date.now();
   const item = rateMap.get(key);
@@ -80,6 +89,9 @@ export async function POST(req: Request) {
       visitor_id: visitorId,
       user_agent: toText(body.user_agent, 400),
       device: toText(body.device, 20),
+      city: headerText(req, ["x-vercel-ip-city", "cf-ipcity"], 120),
+      region: headerText(req, ["x-vercel-ip-country-region", "cf-region"], 120),
+      country: headerText(req, ["x-vercel-ip-country", "cf-ipcountry"], 80),
       meta,
     });
 
