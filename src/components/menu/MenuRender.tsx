@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Allura } from "next/font/google";
 import type { MenuItem, MenuMeta, MenuSection } from "@/app/menu/menuData";
+import { trackEvent } from "@/lib/analytics";
+import { track } from "@/lib/trackClient";
 import { getDefaultMenuPayload } from "@/lib/menuSettings";
 
 const allura = Allura({ subsets: ["latin"], weight: "400" });
@@ -147,6 +149,18 @@ export default function MenuRender({ menuMeta, menuSections, pdfUrl, previewMode
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <a
                 href={resolvedPdfUrl}
+                onClick={() =>
+                  {
+                    trackEvent("menu_pdf_open", {
+                      location: "menu_page",
+                      page_path: "/menu",
+                    });
+                    track("menu_pdf_open", {
+                      page_path: "/menu",
+                      meta: { location: "menu_page", pdf_url: resolvedPdfUrl },
+                    });
+                  }
+                }
                 className="inline-flex items-center justify-center rounded-full border border-gold px-5 py-2 text-sm font-medium text-charcoal no-underline transition hover:bg-gold/15"
                 target="_blank"
                 rel="noreferrer"

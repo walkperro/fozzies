@@ -9,6 +9,7 @@ export default function ApplicantsManager({ rows }: { rows: ApplicantRow[] }) {
   const [openIds, setOpenIds] = useState<string[]>([]);
   const [busyId, setBusyId] = useState<string>("");
   const [messages, setMessages] = useState<Record<string, string>>({});
+  const [copiedById, setCopiedById] = useState<Record<string, boolean>>({});
   const [notes, setNotes] = useState<Record<string, string>>(
     () => Object.fromEntries(rows.map((r) => [r.id, r.admin_note || ""]))
   );
@@ -31,6 +32,31 @@ export default function ApplicantsManager({ rows }: { rows: ApplicantRow[] }) {
 
   function setRowMessage(id: string, message: string) {
     setMessages((prev) => ({ ...prev, [id]: message }));
+  }
+
+  async function copyEmail(id: string, email: string) {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(email);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = email;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "absolute";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+
+      setCopiedById((prev) => ({ ...prev, [id]: true }));
+      setTimeout(() => {
+        setCopiedById((prev) => ({ ...prev, [id]: false }));
+      }, 1200);
+    } catch {
+      setRowMessage(id, "Could not copy email.");
+    }
   }
 
   return (
@@ -63,7 +89,19 @@ export default function ApplicantsManager({ rows }: { rows: ApplicantRow[] }) {
                   </button>
                   {messages[row.id] ? <div className="mt-1 text-xs text-softgray">{messages[row.id]}</div> : null}
                 </td>
-                <td className="py-2 pr-3 text-charcoal">{row.email}</td>
+                <td className="py-2 pr-3 text-charcoal">
+                  <div className="flex items-center gap-2">
+                    <span>{row.email}</span>
+                    <button
+                      type="button"
+                      onClick={() => copyEmail(row.id, row.email)}
+                      disabled={copiedById[row.id]}
+                      className="rounded-full border border-charcoal/20 bg-cream px-3 py-1 text-xs text-charcoal transition hover:bg-charcoal/5 disabled:opacity-70"
+                    >
+                      {copiedById[row.id] ? "Copied" : "Copy"}
+                    </button>
+                  </div>
+                </td>
                 <td className="py-2 pr-3 text-softgray">{row.phone || "—"}</td>
                 <td className="py-2 pr-3 text-charcoal">{row.position}</td>
                 <td className="py-2 pr-3 text-softgray">{new Date(row.created_at).toLocaleString()}</td>

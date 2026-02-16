@@ -1,3 +1,15 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy",
+  description: "Read the Fozzie's Dining privacy policy for reservations, newsletter, applications, and analytics.",
+  openGraph: {
+    title: "Privacy | Fozzie's Dining",
+    description: "Read the Fozzie's Dining privacy policy for reservations, newsletter, applications, and analytics.",
+    url: "/privacy",
+  },
+};
+
 export default function PrivacyPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6">

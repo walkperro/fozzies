@@ -20,9 +20,6 @@ export default function MobileDrawer({
   if (!navItems.some((it) => it.href === "/join-the-team")) {
     navItems.push({ href: "/join-the-team", label: "Join The Team" });
   }
-  if (!navItems.some((it) => it.href === "/privacy")) {
-    navItems.push({ href: "/privacy", label: "Privacy" });
-  }
 
   // ESC to close
   useEffect(() => {

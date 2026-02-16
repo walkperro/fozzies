@@ -1,4 +1,15 @@
 import JoinTeamForm from "@/components/JoinTeamForm";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Join The Team",
+  description: "Apply to join the team at Fozzie's Dining in Cookeville, TN.",
+  openGraph: {
+    title: "Join The Team | Fozzie's Dining",
+    description: "Apply to join the team at Fozzie's Dining in Cookeville, TN.",
+    url: "/join-the-team",
+  },
+};
 
 export default function JoinTheTeamPage() {
   return (

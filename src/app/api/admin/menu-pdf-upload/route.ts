@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { upsertSettingValue } from "@/lib/settings";
+import { logServerEvent } from "@/lib/trackServer";
 
 export const runtime = "nodejs";
 
@@ -50,6 +51,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: `Failed to save setting: ${settingError.message}` }, { status: 500 });
     }
 
+    await logServerEvent({
+      event_type: "admin_pdf_upload",
+      page_path: "/admin/menu-pdf",
+      user_agent: req.headers.get("user-agent"),
+      referrer: req.headers.get("referer"),
+      meta: { file_name: file.name, storage_path: storagePath },
+    });
     return NextResponse.json({
       ok: true,
       path: setting.path,

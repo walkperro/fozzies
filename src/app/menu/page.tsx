@@ -1,9 +1,20 @@
 import MenuRender from "@/components/menu/MenuRender";
 import { getSettingValue } from "@/lib/settings";
 import { getDefaultMenuPayload, parseMenuPayload, resolveMenuPdfPath } from "@/lib/menuSettings";
+import type { Metadata } from "next";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Menu",
+  description: "View the latest Fozzie's Dining menu, including seasonal chef selections and downloadable PDF menu.",
+  openGraph: {
+    title: "Menu | Fozzie's Dining",
+    description: "View the latest Fozzie's Dining menu, including seasonal chef selections and downloadable PDF menu.",
+    url: "/menu",
+  },
+};
 
 export default async function MenuPage() {
   const defaults = getDefaultMenuPayload();

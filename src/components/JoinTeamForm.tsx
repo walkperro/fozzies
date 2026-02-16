@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { trackEvent } from "@/lib/analytics";
+import { track } from "@/lib/trackClient";
 
 const POSITIONS = [
   "Host",
@@ -56,6 +58,13 @@ export default function JoinTeamForm() {
       if (!res.ok || !json.ok) {
         throw new Error(typeof json.error === "string" ? json.error : "Could not submit your application.");
       }
+      trackEvent("job_application_submit", {
+        page_path: "/join-the-team",
+      });
+      track("job_application_submit", {
+        page_path: "/join-the-team",
+        meta: { position },
+      });
       router.push("/join-the-team/thank-you");
     } catch (err) {
       setStatus("error");

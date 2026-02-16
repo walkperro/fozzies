@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { trackEvent } from "@/lib/analytics";
+import { track } from "@/lib/trackClient";
 
 type FormState = "idle" | "submitting" | "success" | "error";
 
@@ -50,10 +52,17 @@ export default function ReserveForm() {
         throw new Error(json?.error || "Could not submit reservation.");
       }
 
+      trackEvent("reservation_submit", {
+        page_path: "/",
+      });
+      track("reservation_submit", {
+        page_path: "/",
+        meta: { party_size: partySize },
+      });
       setStatus("success");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setStatus("error");
-      setError(err?.message || "Could not submit reservation.");
+      setError(err instanceof Error ? err.message : "Could not submit reservation.");
     }
   }
 

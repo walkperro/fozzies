@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logServerEvent } from "@/lib/trackServer";
 
 export const runtime = "nodejs";
 
@@ -20,6 +21,12 @@ export async function POST(req: Request) {
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 14, // 14 days
+  });
+  await logServerEvent({
+    event_type: "admin_login",
+    page_path: "/admin/login",
+    user_agent: req.headers.get("user-agent"),
+    referrer: req.headers.get("referer"),
   });
   return res;
 }
