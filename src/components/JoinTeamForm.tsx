@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const POSITIONS = [
@@ -15,6 +16,7 @@ const POSITIONS = [
 ] as const;
 
 export default function JoinTeamForm() {
+  const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -25,7 +27,7 @@ export default function JoinTeamForm() {
   const [company, setCompany] = useState("");
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "error">("idle");
   const [error, setError] = useState("");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -54,16 +56,7 @@ export default function JoinTeamForm() {
       if (!res.ok || !json.ok) {
         throw new Error(typeof json.error === "string" ? json.error : "Could not submit your application.");
       }
-      setStatus("success");
-      setFullName("");
-      setEmail("");
-      setPhone("");
-      setPosition("");
-      setAvailability("");
-      setMessage("");
-      setWebsite("");
-      setCompany("");
-      setConsent(false);
+      router.push("/join-the-team/thank-you");
     } catch (err) {
       setStatus("error");
       setError(err instanceof Error ? err.message : "Could not submit your application.");
@@ -77,11 +70,6 @@ export default function JoinTeamForm() {
       <h2 className="font-serif text-3xl text-charcoal">Application</h2>
       <p className="mt-2 text-sm text-softgray">Tell us a bit about yourself and the role you’re seeking.</p>
 
-      {status === "success" ? (
-        <div className="mt-4 border border-gold/40 bg-gold/10 px-4 py-3 text-sm text-charcoal">
-          Thank you for applying. We’ll reach out if it’s a fit.
-        </div>
-      ) : null}
       {status === "error" ? <div className="mt-4 text-sm text-red-700">{error}</div> : null}
 
       <form onSubmit={onSubmit} className="mt-5 grid gap-4">
