@@ -53,7 +53,7 @@ export default function UtmLinkBuilder() {
   }
 
   return (
-    <section className="border border-charcoal/10 bg-ivory p-5">
+    <section className="min-w-0 w-full max-w-full border border-charcoal/10 bg-ivory p-5">
       <h3 className="font-serif text-2xl text-charcoal">UTM Link Builder</h3>
       <p className="mt-2 text-sm text-softgray">
         Use this link when posting on Instagram, flyers, email, etc — so you can see where visits came from.
@@ -121,7 +121,7 @@ export default function UtmLinkBuilder() {
         </label>
       </div>
 
-      <div className="mt-4 rounded-md border border-charcoal/15 bg-cream px-3 py-2 text-sm text-charcoal break-all">
+      <div className="mt-4 min-w-0 w-full max-w-full rounded-md border border-charcoal/15 bg-cream px-3 py-2 text-sm text-charcoal break-all">
         {generatedUrl || "Fill source, medium, and campaign to generate a shareable tracking link."}
       </div>
 

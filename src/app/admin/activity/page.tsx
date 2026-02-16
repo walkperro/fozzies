@@ -124,8 +124,8 @@ function DataTable({
       {rows.length === 0 ? (
         <p className="mt-4 text-sm text-softgray">{empty}</p>
       ) : (
-        <div className="mt-4 overflow-x-auto pr-4">
-          <table className="w-full min-w-[440px] border-collapse text-left text-sm">
+        <div className="mt-4 overflow-x-auto -mx-5 px-5">
+          <table className="w-full min-w-full border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-charcoal/10 text-softgray">
                 {headers.map((header, idx) => (
@@ -152,7 +152,12 @@ function DataTable({
                         cellIdx === row.length - 1 ? "whitespace-nowrap pr-4 text-right tabular-nums" : "",
                       ].join(" ")}
                     >
-                      {cell}
+                      <span
+                        className={cellIdx === row.length - 1 ? "whitespace-nowrap" : "break-words"}
+                        title={cell}
+                      >
+                        {cell}
+                      </span>
                     </td>
                   ))}
                 </tr>
@@ -298,7 +303,7 @@ export default async function AdminActivityPage({
   const filteredFeed = events.filter((event) => inGroup(event.event_type, group)).slice(0, 50);
 
   return (
-    <main>
+    <main className="max-w-full overflow-x-hidden">
       <div>
         <div className="text-[11px] tracking-[0.18em] text-softgray">ADMIN</div>
         <h2 className="mt-2 font-serif text-4xl text-charcoal">Activity Dashboard</h2>
@@ -436,8 +441,8 @@ export default async function AdminActivityPage({
               {deviceRows.length === 0 ? (
                 <p className="mt-4 text-sm text-softgray">No device data in this range.</p>
               ) : (
-                <div className="mt-4 overflow-x-auto pr-4">
-                  <table className="w-full min-w-[360px] border-collapse text-left text-sm">
+                <div className="mt-4 overflow-x-auto -mx-5 px-5">
+                  <table className="w-full min-w-full border-collapse text-left text-sm">
                     <thead>
                       <tr className="border-b border-charcoal/10 text-softgray">
                         <th className="px-3 py-2 font-medium">Device</th>
@@ -448,7 +453,7 @@ export default async function AdminActivityPage({
                     <tbody>
                       {deviceRows.map((row) => (
                         <tr key={row[0]} className="border-b border-charcoal/10 align-top">
-                          <td className="px-3 py-2 text-charcoal">{row[0]}</td>
+                          <td className="px-3 py-2 text-charcoal break-words" title={row[0]}>{row[0]}</td>
                           <td className="px-3 py-2 whitespace-nowrap pr-4 text-right tabular-nums text-charcoal">{row[1]}</td>
                           <td className="px-3 py-2 whitespace-nowrap pr-4 text-right tabular-nums text-charcoal">{row[2]}</td>
                         </tr>
@@ -484,8 +489,8 @@ export default async function AdminActivityPage({
                   <p>City may be unavailable if the platform doesn&apos;t provide geo headers.</p>
                 </div>
               ) : (
-                <div className="mt-4 overflow-x-auto pr-4">
-                  <table className="w-full min-w-[360px] border-collapse text-left text-sm">
+                <div className="mt-4 overflow-x-auto -mx-5 px-5">
+                  <table className="w-full min-w-full border-collapse text-left text-sm">
                     <thead>
                       <tr className="border-b border-charcoal/10 text-softgray">
                         <th className="px-3 py-2 font-medium">City</th>
@@ -495,7 +500,7 @@ export default async function AdminActivityPage({
                     <tbody>
                       {topCitiesRows.map((row) => (
                         <tr key={row[0]} className="border-b border-charcoal/10 align-top">
-                          <td className="px-3 py-2 text-charcoal">{row[0]}</td>
+                          <td className="px-3 py-2 text-charcoal break-words" title={row[0]}>{row[0]}</td>
                           <td className="px-3 py-2 whitespace-nowrap pr-4 text-right tabular-nums text-charcoal">{row[1]}</td>
                         </tr>
                       ))}
@@ -531,8 +536,8 @@ export default async function AdminActivityPage({
             {filteredFeed.length === 0 ? (
               <p className="mt-4 text-sm text-softgray">No events match this filter.</p>
             ) : (
-              <div className="mt-4 overflow-x-auto pr-4">
-                <table className="w-full min-w-[820px] border-collapse text-left text-sm">
+              <div className="mt-4 overflow-x-auto -mx-5 px-5">
+                <table className="w-full min-w-full border-collapse text-left text-sm">
                   <thead>
                     <tr className="border-b border-charcoal/10 text-softgray">
                       <th className="px-3 py-2 font-medium">Time</th>
@@ -548,10 +553,19 @@ export default async function AdminActivityPage({
                       <tr key={event.id} className="border-b border-charcoal/10 align-top">
                         <td className="px-3 py-2 text-softgray">{new Date(event.created_at).toLocaleString()}</td>
                         <td className="px-3 py-2 text-charcoal">{formatEventLabel(event.event_type)}</td>
-                        <td className="px-3 py-2 text-charcoal">{formatPathLabel(event.page_path)}</td>
+                        <td className="px-3 py-2 text-charcoal break-words" title={formatPathLabel(event.page_path)}>
+                          {formatPathLabel(event.page_path)}
+                        </td>
                         <td className="px-3 py-2 text-softgray">{event.visitor_id || "—"}</td>
                         <td className="px-3 py-2 text-softgray">{event.device || "—"}</td>
-                        <td className="px-3 py-2 text-softgray">
+                        <td
+                          className="px-3 py-2 text-softgray break-words"
+                          title={
+                            event.utm_source || event.utm_medium
+                              ? `${event.utm_source || "(direct)"} / ${event.utm_medium || "(none)"}`
+                              : getReferrerDomain(event.referrer) || "Direct"
+                          }
+                        >
                           {event.utm_source || event.utm_medium
                             ? `${event.utm_source || "(direct)"} / ${event.utm_medium || "(none)"}`
                             : getReferrerDomain(event.referrer) || "Direct"}
