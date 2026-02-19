@@ -4,10 +4,24 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Join The Team",
   description: "Apply to join the team at Fozzie's Dining in Cookeville, TN.",
+  alternates: {
+    canonical: "/join-the-team",
+  },
   openGraph: {
     title: "Join The Team | Fozzie's Dining",
     description: "Apply to join the team at Fozzie's Dining in Cookeville, TN.",
     url: "/join-the-team",
+    images: [
+      {
+        url: "/brand/logo_all_1_hq.png",
+        alt: "Fozzie's Dining logo",
+      },
+    ],
+  },
+  twitter: {
+    title: "Join The Team | Fozzie's Dining",
+    description: "Apply to join the team at Fozzie's Dining in Cookeville, TN.",
+    images: ["/brand/logo_all_1_hq.png"],
   },
 };
 

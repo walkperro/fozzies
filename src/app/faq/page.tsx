@@ -1,3 +1,29 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "FAQ",
+  description: "Read frequently asked questions about dining at Fozzie's Dining in Cookeville, Tennessee.",
+  alternates: {
+    canonical: "/faq",
+  },
+  openGraph: {
+    title: "FAQ | Fozzie's Dining",
+    description: "Read frequently asked questions about dining at Fozzie's Dining in Cookeville, Tennessee.",
+    url: "/faq",
+    images: [
+      {
+        url: "/brand/logo_all_1_hq.png",
+        alt: "Fozzie's Dining logo",
+      },
+    ],
+  },
+  twitter: {
+    title: "FAQ | Fozzie's Dining",
+    description: "Read frequently asked questions about dining at Fozzie's Dining in Cookeville, Tennessee.",
+    images: ["/brand/logo_all_1_hq.png"],
+  },
+};
+
 export default function FAQPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6">

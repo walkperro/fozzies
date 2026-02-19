@@ -22,10 +22,10 @@ type BannerSettings = {
 export default function HomePage() {
   const slides = useMemo(
     () => [
-      { src: "/gallery/dining_room_1.png", alt: "Dining room ambiance" },
-      { src: "/gallery/chef_greeting_guests.png", alt: "Chef greeting guests" },
-      { src: "/gallery/dining_room_2.png", alt: "Bar and dining room atmosphere" },
-      { src: "/gallery/couples_dinner.png", alt: "An intimate dining moment" },
+      { src: "/gallery/dining_room_1.png", alt: "Fine dining room at Fozzie's Dining in Cookeville" },
+      { src: "/gallery/chef_greeting_guests.png", alt: "Chef greeting guests at Fozzie's Dining" },
+      { src: "/gallery/dining_room_2.png", alt: "Upscale bar and dining room seating at Fozzie's Dining" },
+      { src: "/gallery/couples_dinner.png", alt: "Couple enjoying dinner at Fozzie's Dining" },
     ],
     []
   );
@@ -198,7 +198,6 @@ export default function HomePage() {
             <p className="mx-auto mt-6 max-w-xl text-lg text-white/90">
               Crafted for memorable evenings, celebrations, and the moments worth dressing up for.
             </p>
-
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <a
                 href="#reserve"
@@ -221,12 +220,12 @@ export default function HomePage() {
         <section className="mx-auto mt-16 w-full max-w-6xl border border-charcoal/10 bg-cream p-6 shadow-sm sm:p-8">
           <div className="mx-auto w-full">
             <div className="text-center">
-              <div className="inline-flex items-center gap-3 whitespace-nowrap text-[11px] tracking-[0.18em] sm:text-xs sm:tracking-[0.22em] text-softgray">
+              <h2 className="inline-flex items-center gap-3 whitespace-nowrap text-[11px] tracking-[0.18em] sm:text-xs sm:tracking-[0.22em] text-softgray">
                 <span className="h-px w-10 bg-gold/70" />
                 ANNOUNCEMENTS
                 <span className="h-px w-10 bg-gold/70" />
-              </div>
-              <h2 className="mt-4 font-serif text-3xl text-charcoal">Latest Updates</h2>
+              </h2>
+              <h3 className="mt-4 font-serif text-3xl text-charcoal">Latest Updates</h3>
               <div className="mx-auto mt-5 h-px w-48 bg-gold/60" />
             </div>
 
@@ -288,15 +287,13 @@ export default function HomePage() {
         </div>
 
         <div className="md:col-span-6 text-center md:text-left">
-          <div className="inline-flex items-center gap-3 whitespace-nowrap text-[11px] tracking-[0.18em] sm:text-xs sm:tracking-[0.22em] text-softgray">
+          <h2 className="inline-flex items-center gap-3 whitespace-nowrap text-[11px] tracking-[0.18em] sm:text-xs sm:tracking-[0.22em] text-softgray">
             <span className="h-px w-10 bg-gold/70" />
             THE CHEF
             <span className="h-px w-10 bg-gold/70" />
-          </div>
-
-          <h2 className="mt-4 font-serif text-3xl text-charcoal">
-            Hospitality first. Flavor always.
           </h2>
+
+          <h1 className="mt-4 font-serif text-3xl text-charcoal">Chef-Driven Fine Dining in Cookeville, TN</h1>
 
           <p className="mt-4 text-[15px] leading-7 text-softgray">
             From scratch-made classics to elevated seasonal plates — every detail is built around your table: warm hospitality, confident flavors, and an unhurried, white-tablecloth experience.
@@ -308,22 +305,20 @@ export default function HomePage() {
       {/* Signature Dishes */}
       <section className="mt-16">
         <div className="text-center">
-          <div className="inline-flex items-center gap-3 whitespace-nowrap text-[11px] tracking-[0.18em] sm:text-xs sm:tracking-[0.22em] text-softgray">
+          <h2 className="inline-flex items-center gap-3 whitespace-nowrap text-[11px] tracking-[0.18em] sm:text-xs sm:tracking-[0.22em] text-softgray">
             <span className="h-px w-10 bg-gold/70" />
             SIGNATURE DISHES
             <span className="h-px w-10 bg-gold/70" />
-          </div>
-          <h2 className="mt-4 font-serif text-3xl text-charcoal">A few guest favorites</h2>
-          <div className="mx-auto mt-5 h-px w-48 bg-gold/60" />
+          </h2>
         </div>
 
         {/* Mobile: scroll-snap carousel | Desktop: grid */}
         <div className="mt-10 md:hidden">
           <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3">
-            {[
-              { src: "/gallery/main_dish.png", alt: "Signature main dish" },
-              { src: "/gallery/salad_dish.png", alt: "Seasonal salad" },
-              { src: "/gallery/desert_dish.png", alt: "House dessert" },
+              {[
+              { src: "/gallery/main_dish.png", alt: "Chef-plated signature entree at Fozzie's Dining" },
+              { src: "/gallery/salad_dish.png", alt: "Seasonal salad from Fozzie's Dining menu" },
+              { src: "/gallery/desert_dish.png", alt: "House dessert served at Fozzie's Dining" },
             ].map((img) => (
               <div
                 key={img.src}
@@ -345,9 +340,9 @@ export default function HomePage() {
 
         <div className="mt-10 hidden md:grid md:grid-cols-3 md:gap-6">
           {[
-            { src: "/gallery/main_dish.png", alt: "Signature main dish" },
-            { src: "/gallery/salad_dish.png", alt: "Seasonal salad" },
-            { src: "/gallery/desert_dish.png", alt: "House dessert" },
+            { src: "/gallery/main_dish.png", alt: "Chef-plated signature entree at Fozzie's Dining" },
+            { src: "/gallery/salad_dish.png", alt: "Seasonal salad from Fozzie's Dining menu" },
+            { src: "/gallery/desert_dish.png", alt: "House dessert served at Fozzie's Dining" },
           ].map((img) => (
             <div
               key={img.src}
@@ -370,13 +365,11 @@ export default function HomePage() {
       {/* Dining Room Atmosphere */}
       <section className="mt-16">
         <div className="text-center">
-          <div className="inline-flex items-center gap-3 whitespace-nowrap text-[11px] tracking-[0.18em] sm:text-xs sm:tracking-[0.22em] text-softgray">
+          <h2 className="inline-flex items-center gap-3 whitespace-nowrap text-[11px] tracking-[0.18em] sm:text-xs sm:tracking-[0.22em] text-softgray">
             <span className="h-px w-10 bg-gold/70" />
             THE ATMOSPHERE
             <span className="h-px w-10 bg-gold/70" />
-          </div>
-          <h2 className="mt-4 font-serif text-3xl text-charcoal">Timeless. Intimate. Refined.</h2>
-          <div className="mx-auto mt-5 h-px w-48 bg-gold/60" />
+          </h2>
         </div>
 
         <div className="mt-10 grid gap-6 md:grid-cols-12">

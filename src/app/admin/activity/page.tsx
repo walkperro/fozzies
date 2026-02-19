@@ -95,16 +95,26 @@ function inGroup(eventType: string, group: GroupKey) {
   return true;
 }
 
-function HelpTip({ text }: { text: string }) {
-  return (
-    <span
-      title={text}
-      className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-charcoal/20 text-[10px] text-softgray"
-      aria-label={text}
-    >
-      ?
-    </span>
-  );
+function normalizeDeviceLabel(value: string | null) {
+  const normalized = (value || "unknown").toLowerCase();
+  if (normalized === "mobile" || normalized === "desktop" || normalized === "tablet") return normalized;
+  return "other";
+}
+
+function formatDeviceLabel(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function reservationSourceLabel(event: AnalyticsEventRow) {
+  if (event.utm_source) {
+    return event.utm_medium ? `${event.utm_source} / ${event.utm_medium}` : event.utm_source;
+  }
+  return getReferrerDomain(event.referrer) || "Direct / Unknown";
+}
+
+function reservationCityLabel(event: AnalyticsEventRow) {
+  if (!event.city) return "Unknown";
+  return `${event.city}${event.region ? `, ${event.region}` : ""}${event.country ? ` (${event.country})` : ""}`;
 }
 
 function DataTable({
@@ -250,8 +260,7 @@ export default async function AdminActivityPage({
     }
 
     if (event.event_type === "page_view") {
-      const device = (event.device || "unknown").toLowerCase();
-      const normalizedDevice = device === "mobile" || device === "desktop" || device === "tablet" ? device : "other";
+      const normalizedDevice = normalizeDeviceLabel(event.device);
       deviceMap.set(normalizedDevice, (deviceMap.get(normalizedDevice) || 0) + 1);
 
       if (event.city && event.visitor_id) {
@@ -301,6 +310,52 @@ export default async function AdminActivityPage({
     .slice(0, 10);
 
   const filteredFeed = events.filter((event) => inGroup(event.event_type, group)).slice(0, 50);
+  const reservationEvents = summaryEvents.filter((event) => event.event_type === "reservation_submit");
+
+  const reservationsBySourceMap = new Map<string, number>();
+  const reservationsByCityMap = new Map<string, number>();
+  const visitorIdsByDevice = new Map<string, Set<string>>();
+  const reservationByDeviceMap = new Map<string, number>();
+
+  for (const event of reservationEvents) {
+    const sourceLabel = reservationSourceLabel(event);
+    reservationsBySourceMap.set(sourceLabel, (reservationsBySourceMap.get(sourceLabel) || 0) + 1);
+
+    const cityLabel = reservationCityLabel(event);
+    reservationsByCityMap.set(cityLabel, (reservationsByCityMap.get(cityLabel) || 0) + 1);
+
+    const reservationDevice = normalizeDeviceLabel(event.device);
+    reservationByDeviceMap.set(reservationDevice, (reservationByDeviceMap.get(reservationDevice) || 0) + 1);
+  }
+
+  for (const event of pageViewEvents) {
+    if (!event.visitor_id) continue;
+    const device = normalizeDeviceLabel(event.device);
+    const ids = visitorIdsByDevice.get(device) || new Set<string>();
+    ids.add(event.visitor_id);
+    visitorIdsByDevice.set(device, ids);
+  }
+
+  const reservationsBySourceRows = Array.from(reservationsBySourceMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([source, count]) => [source, String(count)]);
+
+  const reservationsByCityRows = Array.from(reservationsByCityMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([city, count]) => [city, String(count)]);
+
+  const conversionByDeviceRows = Array.from(
+    new Set([...Array.from(visitorIdsByDevice.keys()), ...Array.from(reservationByDeviceMap.keys())])
+  )
+    .map((device) => {
+      const visitors = visitorIdsByDevice.get(device)?.size || 0;
+      const reservations = reservationByDeviceMap.get(device) || 0;
+      const rate = visitors > 0 ? `${((reservations / visitors) * 100).toFixed(1)}%` : "—";
+      return [formatDeviceLabel(device), String(visitors), String(reservations), rate] as string[];
+    })
+    .sort((a, b) => Number(b[2]) - Number(a[2]));
 
   return (
     <main className="max-w-full overflow-x-hidden">
@@ -355,37 +410,27 @@ export default async function AdminActivityPage({
         <>
           <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <div className="border border-charcoal/10 bg-ivory p-5">
-              <div className="flex items-center gap-2 text-xs tracking-[0.16em] text-softgray">
-                TOTAL PAGE VIEWS <HelpTip text="All page loads." />
-              </div>
+              <div className="text-xs tracking-[0.16em] text-softgray">TOTAL PAGE VIEWS</div>
               <div className="mt-2 font-serif text-4xl text-charcoal">{totalPageViews.toLocaleString()}</div>
               <p className="mt-2 text-xs text-softgray">All page loads.</p>
             </div>
             <div className="border border-charcoal/10 bg-ivory p-5">
-              <div className="flex items-center gap-2 text-xs tracking-[0.16em] text-softgray">
-                PEOPLE WHO VISITED <HelpTip text="Different devices that visited." />
-              </div>
+              <div className="text-xs tracking-[0.16em] text-softgray">PEOPLE WHO VISITED</div>
               <div className="mt-2 font-serif text-4xl text-charcoal">{uniqueVisitors.toLocaleString()}</div>
               <p className="mt-2 text-xs text-softgray">Different devices that visited.</p>
             </div>
             <div className="border border-charcoal/10 bg-ivory p-5">
-              <div className="flex items-center gap-2 text-xs tracking-[0.16em] text-softgray">
-                ACTIONS TAKEN <HelpTip text="Reservations + signups + job applications." />
-              </div>
+              <div className="text-xs tracking-[0.16em] text-softgray">ACTIONS TAKEN</div>
               <div className="mt-2 font-serif text-4xl text-charcoal">{actionsTaken.toLocaleString()}</div>
               <p className="mt-2 text-xs text-softgray">Reservations + signups + job applications.</p>
             </div>
             <div className="border border-charcoal/10 bg-ivory p-5">
-              <div className="flex items-center gap-2 text-xs tracking-[0.16em] text-softgray">
-                ENGAGEMENT <HelpTip text="Menu PDF opens." />
-              </div>
+              <div className="text-xs tracking-[0.16em] text-softgray">ENGAGEMENT</div>
               <div className="mt-2 font-serif text-4xl text-charcoal">{menuOpenCount.toLocaleString()}</div>
               <p className="mt-2 text-xs text-softgray">Menu PDF opens.</p>
             </div>
             <div className="border border-charcoal/10 bg-ivory p-5">
-              <div className="flex items-center gap-2 text-xs tracking-[0.16em] text-softgray">
-                CONVERSION RATE <HelpTip text="Reservations ÷ People Who Visited" />
-              </div>
+              <div className="text-xs tracking-[0.16em] text-softgray">CONVERSION RATE</div>
               <div className="mt-2 font-serif text-4xl text-charcoal">{conversionRate.toFixed(1)}%</div>
               <p className="mt-2 text-xs text-softgray">Reservations ÷ People Who Visited.</p>
             </div>
@@ -433,10 +478,7 @@ export default async function AdminActivityPage({
               empty="No tracked actions yet."
             />
             <section className="border border-charcoal/10 bg-ivory p-5">
-              <div className="flex items-center gap-2">
-                <h3 className="font-serif text-2xl text-charcoal">Device Split</h3>
-                <HelpTip text="Device is estimated from the browser's user-agent." />
-              </div>
+              <h3 className="font-serif text-2xl text-charcoal">Device Split</h3>
               <p className="mt-2 text-sm text-softgray">Device is estimated from the browser&apos;s user-agent.</p>
               {deviceRows.length === 0 ? (
                 <p className="mt-4 text-sm text-softgray">No device data in this range.</p>
@@ -510,6 +552,27 @@ export default async function AdminActivityPage({
               )}
             </section>
             <UtmLinkBuilder />
+          </div>
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-3">
+            <DataTable
+              title="Reservations by Source"
+              headers={["Source", "Reservations"]}
+              rows={reservationsBySourceRows}
+              empty="No reservation submissions in this range."
+            />
+            <DataTable
+              title="Reservations by City"
+              headers={["City", "Reservations"]}
+              rows={reservationsByCityRows}
+              empty="No reservation city data yet."
+            />
+            <DataTable
+              title="Conversion by Device"
+              headers={["Device", "Visitors", "Reservations", "Conversion Rate"]}
+              rows={conversionByDeviceRows}
+              empty="No device conversion data in this range."
+            />
           </div>
 
           <section className="mt-6 border border-charcoal/10 bg-ivory p-5">

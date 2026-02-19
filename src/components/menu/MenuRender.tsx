@@ -167,6 +167,12 @@ export default function MenuRender({ menuMeta, menuSections, pdfUrl, previewMode
               >
                 Print / Save as PDF
               </a>
+              <a
+                href="https://instagram.com/fozziesdining"
+                className="text-sm text-softgray no-underline transition hover:text-gold hover:underline"
+              >
+                Follow @fozziesdining
+              </a>
             </div>
           ) : null}
         </div>

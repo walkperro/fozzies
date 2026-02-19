@@ -1,4 +1,29 @@
 import Image from "next/image";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About",
+  description: "Learn about Chef Jason Head and the vision behind Fozzie's Dining in Cookeville, Tennessee.",
+  alternates: {
+    canonical: "/about",
+  },
+  openGraph: {
+    title: "About | Fozzie's Dining",
+    description: "Learn about Chef Jason Head and the vision behind Fozzie's Dining in Cookeville, Tennessee.",
+    url: "/about",
+    images: [
+      {
+        url: "/gallery/chef_making_food.jpg",
+        alt: "Chef plating a dish at Fozzie's Dining",
+      },
+    ],
+  },
+  twitter: {
+    title: "About | Fozzie's Dining",
+    description: "Learn about Chef Jason Head and the vision behind Fozzie's Dining in Cookeville, Tennessee.",
+    images: ["/gallery/chef_making_food.jpg"],
+  },
+};
 
 export default function AboutPage() {
   return (

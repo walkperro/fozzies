@@ -4,16 +4,29 @@ import HomePageClient from "@/components/HomePageClient";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://fozziesdining.com";
 
 export const metadata: Metadata = {
-  title: "Chef-Driven Dining in Cookeville, TN",
-  description: "Fozzie's Dining offers elevated chef-driven meals, seasonal dishes, and reservations in Cookeville, Tennessee.",
+  title: "Fine Dining in Cookeville, TN",
+  description:
+    "Discover fine dining in Cookeville, Tennessee at Fozzie's Dining with chef-driven seasonal menus, polished service, and evening reservations.",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title: "Fozzie's Dining",
-    description: "Elevated, chef-driven dining in Cookeville, Tennessee.",
-    url: siteUrl,
+    title: "Fine Dining in Cookeville, TN | Fozzie's Dining",
+    description:
+      "Discover fine dining in Cookeville, Tennessee at Fozzie's Dining with chef-driven seasonal menus and refined hospitality.",
+    url: "/",
+    images: [
+      {
+        url: "/brand/logo_all_1_hq.png",
+        alt: "Fozzie's Dining logo",
+      },
+    ],
   },
   twitter: {
-    title: "Fozzie's Dining",
-    description: "Elevated, chef-driven dining in Cookeville, Tennessee.",
+    title: "Fine Dining in Cookeville, TN | Fozzie's Dining",
+    description:
+      "Discover fine dining in Cookeville, Tennessee at Fozzie's Dining with chef-driven seasonal menus and refined hospitality.",
+    images: ["/brand/logo_all_1_hq.png"],
   },
 };
 
@@ -29,14 +42,7 @@ const homeJsonLd = {
     addressCountry: "US",
   },
   servesCuisine: ["Southern", "Mediterranean", "Asian", "Cajun", "Hispanic"],
-  openingHoursSpecification: [
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-      opens: "16:00",
-      closes: "21:00",
-    },
-  ],
+  sameAs: ["https://instagram.com/fozziesdining"],
 };
 
 export default function HomePage() {

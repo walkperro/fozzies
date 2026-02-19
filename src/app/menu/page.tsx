@@ -9,10 +9,24 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Menu",
   description: "View the latest Fozzie's Dining menu, including seasonal chef selections and downloadable PDF menu.",
+  alternates: {
+    canonical: "/menu",
+  },
   openGraph: {
     title: "Menu | Fozzie's Dining",
     description: "View the latest Fozzie's Dining menu, including seasonal chef selections and downloadable PDF menu.",
     url: "/menu",
+    images: [
+      {
+        url: "/brand/logo_all_1_hq.png",
+        alt: "Fozzie's Dining logo",
+      },
+    ],
+  },
+  twitter: {
+    title: "Menu | Fozzie's Dining",
+    description: "View the latest Fozzie's Dining menu, including seasonal chef selections and downloadable PDF menu.",
+    images: ["/brand/logo_all_1_hq.png"],
   },
 };
 
