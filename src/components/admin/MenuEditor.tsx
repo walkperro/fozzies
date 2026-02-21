@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import MenuRender from "@/components/menu/MenuRender";
 import type { MenuItem, MenuSection } from "@/app/menu/menuData";
-import { getDefaultMenuPayload, type MenuPayload } from "@/lib/menuSettings";
+import { getDefaultMenuPayload, type MenuFooterBlock, type MenuPayload } from "@/lib/menuSettings";
 
 type PreviewViewport = "mobile" | "desktop";
 
@@ -44,6 +44,25 @@ function normalizeSection(section: MenuSection): MenuSection {
   };
 }
 
+function cloneFooterBlock(footerBlock: MenuFooterBlock): MenuFooterBlock {
+  return {
+    hours: footerBlock.hours.map((entry) => ({ ...entry })),
+    reservationsText: footerBlock.reservationsText,
+    reservationsDetails: footerBlock.reservationsDetails.map((entry) => ({ ...entry })),
+    connectLinks: footerBlock.connectLinks.map((entry) => ({ ...entry })),
+  };
+}
+
+function normalizeFooterHrefInput(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^www\./i.test(trimmed)) return `https://${trimmed}`;
+  if (/^@/.test(trimmed)) return `https://instagram.com/${trimmed.replace(/^@+/, "")}`;
+  if (trimmed.includes(".") && !/^[a-z][a-z\d+\-.]*:\/\//i.test(trimmed)) return `https://${trimmed}`;
+  return trimmed;
+}
+
 function toSnapshot(payload: MenuPayload) {
   return JSON.stringify(payload);
 }
@@ -64,6 +83,7 @@ export default function MenuEditor({
         ...initialValue.meta,
       },
       sections: initialValue.sections.map(normalizeSection),
+      footerBlock: cloneFooterBlock(initialValue.footerBlock || DEFAULTS.footerBlock!),
     }),
     [initialValue]
   );
@@ -72,11 +92,12 @@ export default function MenuEditor({
     ...initialState.meta,
   });
   const [sections, setSections] = useState<MenuSection[]>(initialState.sections);
+  const [footerBlock, setFooterBlock] = useState<MenuFooterBlock>(cloneFooterBlock(initialState.footerBlock!));
   const [isPending, startTransition] = useTransition();
   const [status, setStatus] = useState<string>("");
   const [previewViewport, setPreviewViewport] = useState<PreviewViewport>("desktop");
 
-  const currentPayload = useMemo<MenuPayload>(() => ({ meta, sections }), [meta, sections]);
+  const currentPayload = useMemo<MenuPayload>(() => ({ meta, sections, footerBlock }), [meta, sections, footerBlock]);
   const [savedSnapshot, setSavedSnapshot] = useState(() => toSnapshot(currentPayload));
   const isDirty = toSnapshot(currentPayload) !== savedSnapshot;
 
@@ -175,6 +196,19 @@ export default function MenuEditor({
           social: Array.isArray(meta.social) && meta.social.length > 0 ? meta.social : DEFAULTS.meta.social,
         },
         sections: sections.map(normalizeSection),
+        footerBlock: {
+          hours:
+            Array.isArray(footerBlock.hours) && footerBlock.hours.length > 0 ? footerBlock.hours : DEFAULTS.footerBlock!.hours,
+          reservationsText: footerBlock.reservationsText || DEFAULTS.footerBlock!.reservationsText,
+          reservationsDetails:
+            Array.isArray(footerBlock.reservationsDetails) && footerBlock.reservationsDetails.length > 0
+              ? footerBlock.reservationsDetails
+              : DEFAULTS.footerBlock!.reservationsDetails,
+          connectLinks:
+            Array.isArray(footerBlock.connectLinks) && footerBlock.connectLinks.length > 0
+              ? footerBlock.connectLinks
+              : DEFAULTS.footerBlock!.connectLinks,
+        },
       };
 
       const res = await saveAction(payload);
@@ -400,6 +434,198 @@ export default function MenuEditor({
           ))}
         </section>
 
+        <section className="border border-charcoal/10 bg-ivory p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="font-serif text-2xl text-charcoal">Footer Block</h3>
+          </div>
+
+          <div className="mt-4 space-y-6">
+            <div>
+              <div className="text-[11px] tracking-[0.18em] text-softgray">HOURS</div>
+              <div className="mt-3 space-y-3">
+                {footerBlock.hours.map((row, index) => (
+                  <div key={`footer-hours-${index}`} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+                    <input
+                      value={row.label}
+                      onChange={(e) =>
+                        setFooterBlock((prev) => ({
+                          ...prev,
+                          hours: prev.hours.map((entry, i) => (i === index ? { ...entry, label: e.target.value } : entry)),
+                        }))
+                      }
+                      className="w-full border border-charcoal/15 bg-cream px-3 py-2 text-charcoal outline-none"
+                      placeholder="Label"
+                    />
+                    <input
+                      value={row.value}
+                      onChange={(e) =>
+                        setFooterBlock((prev) => ({
+                          ...prev,
+                          hours: prev.hours.map((entry, i) => (i === index ? { ...entry, value: e.target.value } : entry)),
+                        }))
+                      }
+                      className="w-full border border-charcoal/15 bg-cream px-3 py-2 text-charcoal outline-none"
+                      placeholder="Value"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFooterBlock((prev) => ({
+                          ...prev,
+                          hours: prev.hours.filter((_, i) => i !== index),
+                        }))
+                      }
+                      className="rounded-full border border-charcoal/20 px-3 py-1 text-xs text-charcoal hover:bg-charcoal/5"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setFooterBlock((prev) => ({
+                    ...prev,
+                    hours: [...prev.hours, { label: "", value: "" }],
+                  }))
+                }
+                className="mt-3 rounded-full border border-gold px-4 py-1.5 text-sm font-medium text-charcoal transition hover:bg-gold/15"
+              >
+                Add Hour Row
+              </button>
+            </div>
+
+            <div>
+              <div className="text-[11px] tracking-[0.18em] text-softgray">RESERVATIONS</div>
+              <div className="mt-3">
+                <label className="block text-[11px] tracking-[0.18em] text-softgray">RESERVATIONS TEXT</label>
+                <input
+                  value={footerBlock.reservationsText}
+                  onChange={(e) => setFooterBlock((prev) => ({ ...prev, reservationsText: e.target.value }))}
+                  className="mt-2 w-full border border-charcoal/15 bg-cream px-3 py-2 text-charcoal outline-none"
+                />
+              </div>
+              <div className="mt-3 space-y-3">
+                {footerBlock.reservationsDetails.map((row, index) => (
+                  <div key={`footer-res-details-${index}`} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+                    <input
+                      value={row.label}
+                      onChange={(e) =>
+                        setFooterBlock((prev) => ({
+                          ...prev,
+                          reservationsDetails: prev.reservationsDetails.map((entry, i) =>
+                            i === index ? { ...entry, label: e.target.value } : entry
+                          ),
+                        }))
+                      }
+                      className="w-full border border-charcoal/15 bg-cream px-3 py-2 text-charcoal outline-none"
+                      placeholder="Label"
+                    />
+                    <input
+                      value={row.value}
+                      onChange={(e) =>
+                        setFooterBlock((prev) => ({
+                          ...prev,
+                          reservationsDetails: prev.reservationsDetails.map((entry, i) =>
+                            i === index ? { ...entry, value: e.target.value } : entry
+                          ),
+                        }))
+                      }
+                      className="w-full border border-charcoal/15 bg-cream px-3 py-2 text-charcoal outline-none"
+                      placeholder="Value"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFooterBlock((prev) => ({
+                          ...prev,
+                          reservationsDetails: prev.reservationsDetails.filter((_, i) => i !== index),
+                        }))
+                      }
+                      className="rounded-full border border-charcoal/20 px-3 py-1 text-xs text-charcoal hover:bg-charcoal/5"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setFooterBlock((prev) => ({
+                    ...prev,
+                    reservationsDetails: [...prev.reservationsDetails, { label: "", value: "" }],
+                  }))
+                }
+                className="mt-3 rounded-full border border-gold px-4 py-1.5 text-sm font-medium text-charcoal transition hover:bg-gold/15"
+              >
+                Add Detail Row
+              </button>
+            </div>
+
+            <div>
+              <div className="text-[11px] tracking-[0.18em] text-softgray">CONNECT</div>
+              <div className="mt-3 space-y-3">
+                {footerBlock.connectLinks.map((row, index) => (
+                  <div key={`footer-connect-${index}`} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+                    <input
+                      value={row.label}
+                      onChange={(e) =>
+                        setFooterBlock((prev) => ({
+                          ...prev,
+                          connectLinks: prev.connectLinks.map((entry, i) =>
+                            i === index ? { ...entry, label: e.target.value } : entry
+                          ),
+                        }))
+                      }
+                      className="w-full border border-charcoal/15 bg-cream px-3 py-2 text-charcoal outline-none"
+                      placeholder="Display Text"
+                    />
+                    <input
+                      value={row.href || ""}
+                      onChange={(e) =>
+                        setFooterBlock((prev) => ({
+                          ...prev,
+                          connectLinks: prev.connectLinks.map((entry, i) =>
+                            i === index ? { ...entry, href: normalizeFooterHrefInput(e.target.value) } : entry
+                          ),
+                        }))
+                      }
+                      className="w-full border border-charcoal/15 bg-cream px-3 py-2 text-charcoal outline-none"
+                      placeholder="URL"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFooterBlock((prev) => ({
+                          ...prev,
+                          connectLinks: prev.connectLinks.filter((_, i) => i !== index),
+                        }))
+                      }
+                      className="rounded-full border border-charcoal/20 px-3 py-1 text-xs text-charcoal hover:bg-charcoal/5"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setFooterBlock((prev) => ({
+                    ...prev,
+                    connectLinks: [...prev.connectLinks, { label: "", href: "" }],
+                  }))
+                }
+                className="mt-3 rounded-full border border-gold px-4 py-1.5 text-sm font-medium text-charcoal transition hover:bg-gold/15"
+              >
+                Add Connect Row
+              </button>
+            </div>
+          </div>
+        </section>
+
         <div className="flex flex-wrap items-center gap-4">
           <button
             disabled={isPending}
@@ -438,7 +664,7 @@ export default function MenuEditor({
         </div>
 
         <div className={`border border-charcoal/10 bg-cream ${previewViewport === "mobile" ? "mx-auto max-w-[430px]" : "w-full"}`}>
-          <MenuRender menuMeta={meta} menuSections={sections} pdfUrl={currentPdfPath} previewMode />
+          <MenuRender menuMeta={meta} menuSections={sections} footerBlock={footerBlock} pdfUrl={currentPdfPath} previewMode />
         </div>
       </section>
     </div>

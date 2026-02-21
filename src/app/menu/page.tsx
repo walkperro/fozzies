@@ -34,6 +34,7 @@ export default async function MenuPage() {
   const defaults = getDefaultMenuPayload();
   let menuMeta = defaults.meta;
   let menuSections = defaults.sections;
+  let menuFooterBlock = defaults.footerBlock;
   let menuPdfPath = "/fozzies-menu.pdf";
 
   const [storedMenu, storedPdf] = await Promise.all([
@@ -49,11 +50,12 @@ export default async function MenuPage() {
     if (parsed) {
       menuMeta = parsed.meta;
       menuSections = parsed.sections;
+      menuFooterBlock = parsed.footerBlock || defaults.footerBlock;
     } else {
       console.error("Invalid site_settings.menu_html payload. Falling back to static menuData.");
     }
   }
   menuPdfPath = resolveMenuPdfPath(storedPdf);
 
-  return <MenuRender menuMeta={menuMeta} menuSections={menuSections} pdfUrl={menuPdfPath} />;
+  return <MenuRender menuMeta={menuMeta} menuSections={menuSections} footerBlock={menuFooterBlock} pdfUrl={menuPdfPath} />;
 }

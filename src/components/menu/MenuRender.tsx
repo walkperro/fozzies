@@ -6,13 +6,14 @@ import { Allura } from "next/font/google";
 import type { MenuItem, MenuMeta, MenuSection } from "@/app/menu/menuData";
 import { trackEvent } from "@/lib/analytics";
 import { track } from "@/lib/trackClient";
-import { getDefaultMenuPayload } from "@/lib/menuSettings";
+import { deriveFooterBlockFromMeta, getDefaultMenuPayload, type MenuFooterBlock } from "@/lib/menuSettings";
 
 const allura = Allura({ subsets: ["latin"], weight: "400" });
 
 type MenuRenderProps = {
   menuMeta?: Partial<MenuMeta> | null;
   menuSections?: MenuSection[] | null;
+  footerBlock?: MenuFooterBlock | null;
   pdfUrl?: string;
   previewMode?: boolean;
 };
@@ -74,6 +75,16 @@ function normalizeSections(sections?: MenuSection[] | null): MenuSection[] {
   return normalized;
 }
 
+function isValidHttpHref(value?: string) {
+  if (!value) return false;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function Section({
   title,
   subtitle,
@@ -115,10 +126,11 @@ function Section({
   );
 }
 
-export default function MenuRender({ menuMeta, menuSections, pdfUrl, previewMode = false }: MenuRenderProps) {
+export default function MenuRender({ menuMeta, menuSections, footerBlock, pdfUrl, previewMode = false }: MenuRenderProps) {
   const resolvedMeta = normalizeMeta(menuMeta);
   const resolvedSections = normalizeSections(menuSections);
   const resolvedPdfUrl = typeof pdfUrl === "string" && pdfUrl.trim() ? pdfUrl : "/fozzies-menu.pdf";
+  const resolvedFooterBlock = footerBlock ?? deriveFooterBlockFromMeta(resolvedMeta);
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">
@@ -187,7 +199,7 @@ export default function MenuRender({ menuMeta, menuSections, pdfUrl, previewMode
           <div className="text-softgray">
             <div className="text-xs tracking-[0.18em]">HOURS</div>
             <div className="mt-3 text-[15px] leading-6">
-              {resolvedMeta.hours.map((h, index) => (
+              {resolvedFooterBlock.hours.map((h, index) => (
                 <div key={`${h.label}-${index}`} className="mt-2">
                   <div className="text-charcoal/80">{h.label}</div>
                   {h.value}
@@ -199,8 +211,8 @@ export default function MenuRender({ menuMeta, menuSections, pdfUrl, previewMode
           <div className="text-softgray">
             <div className="text-xs tracking-[0.18em]">RESERVATIONS</div>
             <div className="mt-3 text-[15px] leading-6">
-              {resolvedMeta.reservations}
-              {resolvedMeta.faq.map((f, index) => (
+              {resolvedFooterBlock.reservationsText}
+              {resolvedFooterBlock.reservationsDetails.map((f, index) => (
                 <div key={`${f.label}-${index}`} className="mt-3">
                   <div className="text-charcoal/80">{f.label}</div>
                   {f.value}
@@ -212,10 +224,16 @@ export default function MenuRender({ menuMeta, menuSections, pdfUrl, previewMode
           <div className="text-softgray">
             <div className="text-xs tracking-[0.18em]">CONNECT</div>
             <div className="mt-3 text-[15px] leading-6">
-              {resolvedMeta.social.length > 0
-                ? resolvedMeta.social.map((s, index) => (
-                    <div key={`${s.label}-${index}`}>
-                      {s.label} — <span className="text-charcoal/70">{s.value}</span>
+              {resolvedFooterBlock.connectLinks.length > 0
+                ? resolvedFooterBlock.connectLinks.map((link, index) => (
+                    <div key={`${link.label}-${index}`}>
+                      {isValidHttpHref(link.href) ? (
+                        <a href={link.href} target="_blank" rel="noopener noreferrer" className="text-charcoal/70">
+                          {link.label}
+                        </a>
+                      ) : (
+                        <span className="text-charcoal/70">{link.label}</span>
+                      )}
                     </div>
                   ))
                 : null}
