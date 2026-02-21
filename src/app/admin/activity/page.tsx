@@ -122,60 +122,74 @@ function DataTable({
   empty,
   headers,
   rows,
+  wideOnMobile = false,
+  nowrapHeaders = false,
 }: {
   title: string;
   empty: string;
   headers: string[];
   rows: string[][];
+  wideOnMobile?: boolean;
+  nowrapHeaders?: boolean;
 }) {
+  const innerMinWidthClass = wideOnMobile ? "min-w-[760px]" : "min-w-0";
+
   return (
-    <section className="border border-charcoal/10 bg-ivory p-5">
-      <h3 className="font-serif text-2xl text-charcoal">{title}</h3>
-      {rows.length === 0 ? (
-        <p className="mt-4 text-sm text-softgray">{empty}</p>
-      ) : (
-        <div className="mt-4 overflow-x-auto -mx-5 px-5">
-          <table className="w-full min-w-full border-collapse text-left text-sm">
-            <thead>
-              <tr className="border-b border-charcoal/10 text-softgray">
-                {headers.map((header, idx) => (
-                  <th
-                    key={header}
-                    className={[
-                      "px-3 py-2 font-medium",
-                      idx === headers.length - 1 ? "whitespace-nowrap pr-4 text-right tabular-nums" : "",
-                    ].join(" ")}
-                  >
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, idx) => (
-                <tr key={`${title}-${idx}`} className="border-b border-charcoal/10 align-top">
-                  {row.map((cell, cellIdx) => (
-                    <td
-                      key={`${title}-${idx}-${cellIdx}`}
-                      className={[
-                        "px-3 py-2 text-charcoal",
-                        cellIdx === row.length - 1 ? "whitespace-nowrap pr-4 text-right tabular-nums" : "",
-                      ].join(" ")}
-                    >
-                      <span
-                        className={cellIdx === row.length - 1 ? "whitespace-nowrap" : "break-words"}
-                        title={cell}
-                      >
-                        {cell}
-                      </span>
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <section className="min-w-0 w-full">
+      <div className="min-w-0 w-full overflow-visible rounded border border-charcoal/10 bg-ivory">
+        <div className="p-5">
+          <h3 className="font-serif text-2xl text-charcoal">{title}</h3>
+          {rows.length === 0 ? (
+            <p className="mt-4 text-sm text-softgray">{empty}</p>
+          ) : (
+            <div className="mt-4 max-w-full overflow-x-auto touch-pan-x [-webkit-overflow-scrolling:touch]">
+              <div className={innerMinWidthClass}>
+                <table className="w-full border-collapse text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-charcoal/10 text-softgray">
+                      {headers.map((header, idx) => (
+                        <th
+                          key={header}
+                          className={[
+                            "px-3 py-2 font-medium",
+                            nowrapHeaders ? "whitespace-nowrap" : "",
+                            idx === headers.length - 1 ? "whitespace-nowrap pr-4 text-right tabular-nums" : "",
+                          ].join(" ")}
+                        >
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((row, idx) => (
+                      <tr key={`${title}-${idx}`} className="border-b border-charcoal/10 align-top">
+                        {row.map((cell, cellIdx) => (
+                          <td
+                            key={`${title}-${idx}-${cellIdx}`}
+                            className={[
+                              "px-3 py-2 text-charcoal",
+                              nowrapHeaders ? "whitespace-nowrap" : "",
+                              cellIdx === row.length - 1 ? "whitespace-nowrap pr-4 text-right tabular-nums" : "",
+                            ].join(" ")}
+                          >
+                            <span
+                              className={nowrapHeaders || cellIdx === row.length - 1 ? "whitespace-nowrap" : "break-words"}
+                              title={cell}
+                            >
+                              {cell}
+                            </span>
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </section>
   );
 }
@@ -554,24 +568,30 @@ export default async function AdminActivityPage({
             <UtmLinkBuilder />
           </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-3">
+          <div className="mt-6 grid min-w-0 gap-6 lg:grid-cols-3">
             <DataTable
               title="Reservations by Source"
               headers={["Source", "Reservations"]}
               rows={reservationsBySourceRows}
               empty="No reservation submissions in this range."
+              wideOnMobile={true}
+              nowrapHeaders
             />
             <DataTable
               title="Reservations by City"
               headers={["City", "Reservations"]}
               rows={reservationsByCityRows}
               empty="No reservation city data yet."
+              wideOnMobile={true}
+              nowrapHeaders
             />
             <DataTable
               title="Conversion by Device"
               headers={["Device", "Visitors", "Reservations", "Conversion Rate"]}
               rows={conversionByDeviceRows}
               empty="No device conversion data in this range."
+              wideOnMobile={true}
+              nowrapHeaders
             />
           </div>
 
