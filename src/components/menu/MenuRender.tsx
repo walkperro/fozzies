@@ -180,12 +180,6 @@ export default function MenuRender({ menuMeta, menuSections, footerBlock, pdfUrl
               >
                 Print / Save as PDF
               </a>
-              <a
-                href="https://instagram.com/fozziesdining"
-                className={`text-sm text-softgray transition ${GOLD_UNDERLINE_LINK_CLASS}`}
-              >
-                Follow @fozziesdining
-              </a>
             </div>
           ) : null}
         </div>
