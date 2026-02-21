@@ -398,13 +398,10 @@ export default function MenuEditor({
                         value={(item.desc || []).join("\n")}
                         onChange={(e) =>
                           updateItem(sectionIndex, itemIndex, {
-                            desc: e.target.value
-                              .split("\n")
-                              .map((v) => v.trim())
-                              .filter(Boolean),
+                            desc: e.target.value.split("\n"),
                           })
                         }
-                        className="mt-2 w-full border border-charcoal/15 bg-cream px-3 py-2 text-charcoal outline-none"
+                        className="mt-2 w-full whitespace-pre-wrap break-words tracking-normal border border-charcoal/15 bg-cream px-3 py-2 text-charcoal outline-none"
                       />
                     </div>
 
