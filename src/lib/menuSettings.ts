@@ -36,6 +36,28 @@ function normalizeLabelValueList(
   return rows.length > 0 ? rows : fallback;
 }
 
+function normalizeSocialList(
+  value: unknown,
+  fallback: Array<{ label: string; value: string; href?: string }>
+): Array<{ label: string; value: string; href?: string }> {
+  if (!Array.isArray(value)) return fallback;
+  const rows: Array<{ label: string; value: string; href?: string }> = value
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") return null;
+      const row = entry as Record<string, unknown>;
+      const label = toStringOrDefault(row.label, "");
+      const itemValue = toStringOrDefault(row.value, "");
+      if (!label || !itemValue) return null;
+      return {
+        label,
+        value: itemValue,
+        href: toOptionalString(row.href, ""),
+      };
+    })
+    .filter((entry) => !!entry) as Array<{ label: string; value: string; href?: string }>;
+  return rows.length > 0 ? rows : fallback;
+}
+
 function toOptionalString(value: unknown, fallback = "") {
   return typeof value === "string" ? value.trim() : fallback;
 }
@@ -75,7 +97,7 @@ export function deriveFooterBlockFromMeta(meta: Pick<MenuMeta, "hours" | "reserv
     reservationsDetails: meta.faq.map((entry) => ({ ...entry })),
     connectLinks: meta.social.map((entry) => ({
       label: `${entry.label} — ${entry.value}`,
-      href: socialValueToHref(entry.value),
+      href: entry.href || socialValueToHref(entry.value),
     })),
   };
 }
@@ -110,7 +132,7 @@ function normalizeMenuMeta(value: unknown): MenuMeta {
     reservations: toStringOrDefault(meta.reservations, MENU_META.reservations),
     hours: normalizeLabelValueList(meta.hours, MENU_META.hours),
     faq: normalizeLabelValueList(meta.faq, MENU_META.faq),
-    social: normalizeLabelValueList(meta.social, MENU_META.social),
+    social: normalizeSocialList(meta.social, MENU_META.social),
   };
 }
 

@@ -12,6 +12,8 @@ const LINKS = [
   { href: "/admin/clients", label: "Clients" },
   { href: "/admin/applicants", label: "Applicants" },
   { href: "/admin/menu", label: "Menu Editor" },
+  { href: "/admin/faq", label: "FAQ Editor" },
+  { href: "/admin/contact", label: "Contact Editor" },
   { href: "/admin/menu-pdf", label: "Menu PDF" },
   { href: "/admin/activity", label: "Activity" },
 ];

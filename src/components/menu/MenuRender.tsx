@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Allura } from "next/font/google";
 import type { MenuItem, MenuMeta, MenuSection } from "@/app/menu/menuData";
 import { trackEvent } from "@/lib/analytics";
+import { GOLD_UNDERLINE_LINK_CLASS } from "@/lib/linkStyles";
 import { track } from "@/lib/trackClient";
 import { deriveFooterBlockFromMeta, getDefaultMenuPayload, type MenuFooterBlock } from "@/lib/menuSettings";
 
@@ -181,7 +182,7 @@ export default function MenuRender({ menuMeta, menuSections, footerBlock, pdfUrl
               </a>
               <a
                 href="https://instagram.com/fozziesdining"
-                className="text-sm text-softgray no-underline transition hover:text-gold hover:underline"
+                className={`text-sm text-softgray transition ${GOLD_UNDERLINE_LINK_CLASS}`}
               >
                 Follow @fozziesdining
               </a>
@@ -228,7 +229,12 @@ export default function MenuRender({ menuMeta, menuSections, footerBlock, pdfUrl
                 ? resolvedFooterBlock.connectLinks.map((link, index) => (
                     <div key={`${link.label}-${index}`}>
                       {isValidHttpHref(link.href) ? (
-                        <a href={link.href} target="_blank" rel="noopener noreferrer" className="text-charcoal/70">
+                        <a
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`text-charcoal/70 ${GOLD_UNDERLINE_LINK_CLASS}`}
+                        >
                           {link.label}
                         </a>
                       ) : (

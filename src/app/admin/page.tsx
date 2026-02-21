@@ -7,6 +7,8 @@ const CARDS = [
   { href: "/admin/clients", title: "Clients", note: "Newsletter list and blast composer skeleton." },
   { href: "/admin/applicants", title: "Applicants", note: "Review and manage job applications." },
   { href: "/admin/menu", title: "Menu Editor", note: "Edit menu content persisted in site settings." },
+  { href: "/admin/faq", title: "FAQ Editor", note: "Edit FAQ page content persisted in site settings." },
+  { href: "/admin/contact", title: "Contact Editor", note: "Edit Contact page content persisted in site settings." },
   { href: "/admin/menu-pdf", title: "Menu PDF", note: "Upload/swap the downloadable menu PDF." },
   { href: "/admin/activity", title: "Activity", note: "Placeholder for analytics and activity feeds." },
 ];

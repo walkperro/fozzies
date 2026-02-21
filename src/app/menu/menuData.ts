@@ -6,7 +6,7 @@ export type MenuMeta = {
   reservations: string;
   hours: Array<{ label: string; value: string }>;
   faq: Array<{ label: string; value: string }>;
-  social: Array<{ label: string; value: string }>;
+  social: Array<{ label: string; value: string; href?: string }>;
 };
 
 export const MENU_META: MenuMeta = {
@@ -24,8 +24,8 @@ export const MENU_META: MenuMeta = {
     { label: "Reservations", value: "Recommended" },
   ],
   social: [
-    { label: "Facebook", value: "—" },
-    { label: "Instagram", value: "—" },
+    { label: "Facebook", value: "—", href: "" },
+    { label: "Instagram", value: "—", href: "https://instagram.com/fozziesdining" },
   ],
 };
 
